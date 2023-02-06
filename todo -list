@@ -1,3 +1,7 @@
+requirements for the project:
+python: pandas, spacy, whoosh, dash
+
+
 list of things for marking:
 1.Iterative plan and design of the Sweng project. 
 2.Iterative execution of the Sweng project. 
