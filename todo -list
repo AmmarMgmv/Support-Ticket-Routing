@@ -1,0 +1,36 @@
+list of things for marking:
+1.Iterative plan and design of the Sweng project. 
+2.Iterative execution of the Sweng project. 
+3.Presentation and demonstration of the progress
+4.Final version of the Sweng project
+
+
+
+plan for completion of the project:
+
+A)
+Pre-processing
+Remove stop words etc.
+Picking the Tags , knowledge etc.
+
+B)
+Matching, Routing, Search and Auto complete.
+
+Configurable suggestions etc. 
+Add skill set , time zone as extra parameters
+
+C)
+Recommendations (based on tags/ person 
+knowledge base)
+1. Suggested contacts
+2. Suggested previous answers
+
+D)
+create dash server
+1. Form page
+2. Admin page
+3. Trend and Analytics Page
+4. Baseline of issues
+
+E)
+Analytics
