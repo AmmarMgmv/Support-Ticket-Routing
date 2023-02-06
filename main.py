@@ -11,7 +11,7 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 tags = tagDataset.loc[:,"Tag"] #loc: choose column by name
 
 uniqueTags = pd.unique(tags) #get unique tags
-print("Question 1: Unique Tags")
+print("Question 1: Get the list of Unique tags. (+count the unique tags)")
 print(uniqueTags, "\nNumber of tags: ", len(uniqueTags), "\n")
 
 # 2.       get the list and count of unique ownerIds
@@ -20,13 +20,16 @@ aOwner = aDataset.loc[:, "OwnerUserId"]
 
 owners = pd.concat([qOwner, aOwner]) #combine the 2 above lists
 uniqueOwners = pd.unique(owners)    
-print("Question 2: Unique Owner Id's:")
-print(uniqueOwners, "\nNumber of owner id's: ", len(uniqueOwners), "\n")
-# print(uniqueOwners.astype('int'), "\nNumber of owner id's: ", len(uniqueOwners), "\n")
+filteredUniqueOwners = pd.Series(uniqueOwners).dropna().astype('int').values #gets rid of invalid values and converts ID to int type
+print("Question 2: Get the list and count of unique ownerIds")
+print("Unique ID's in floating point representation: ", uniqueOwners, "\nNumber of owner id's: ", len(uniqueOwners))
+print("Unique ID's in integer representation: ", filteredUniqueOwners, "\nNumber of owner id's: ", len(filteredUniqueOwners), "\n")
 
 # 3.       Count number of question per tag ( + get top category )
 sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" "
-sortedTags.sort_values(ascending=False) #sort to show top categories
+sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
+print("Question 3: Count number of question per tag ( + get top category )")
+print("Tags sorted from most used to least used: \n", sortByTop)
 
 # 4.       get number of question asked by each owner / and in each category (same for answers dataset)
 sortedQs = qDataset.groupby(["OwnerUserId"]).size()
