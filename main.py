@@ -29,20 +29,23 @@ print("Unique ID's in integer representation: ", filteredUniqueOwners, "\nNumber
 sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" "
 sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
 print("Question 3: Count number of question per tag ( + get top category )")
-print("Tags sorted from most used to least used: \n", sortByTop)
+print("Tags sorted from most used to least used: \n", sortByTop, "\n")
 
 # 4.       get number of question asked by each owner / and in each category (same for answers dataset)
 sortedQs = qDataset.groupby(["OwnerUserId"]).size()
-sortedQs
+print("Question 4: Get number of question asked by each owner / and in each category\n")
+print(sortedQs, "\n")
 #  answers datasheet
 sortedAns = aDataset.groupby(["ParentId"]).size()
-sortedAns
+print("Question 4: Get number of questions answered by each owner / and in each category\n")
+print(sortedAns, "\n")
 
 # 5.       count Number of questions per day
-# format = "%Y-%m-%d"
+format = "%Y-%m-%d"
 dates = pd.DataFrame(pd.to_datetime(qDataset["CreationDate"]).dt.strftime(format))
 sortedDates = dates.groupby(["CreationDate"]).size()
-sortedDates
+print("Question 5: Count Number of questions per day\n")
+print(sortedDates, "\n")
 
 # 6.       Count number of questions in each tags per day
 
