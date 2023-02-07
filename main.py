@@ -48,9 +48,31 @@ print("Question 5: Count Number of questions per day\n")
 print(sortedDates, "\n")
 
 # 6.       Count number of questions in each tags per day
+# Merge the "Tags" and "Questions" datasets on the "Id" column
+TagsQuestions = pd.merge(tagDataset, qDataset, on="Id", how="inner")
+# Convert the "CreationDate" column to a datetime type and make it a new column
+TagsQuestions['CreationDate'] = pd.to_datetime(TagsQuestions['CreationDate'])
+TagsQuestions['Day'] = TagsQuestions['CreationDate'].dt.date
+# Group by "Day" and "Tag" columns, then count number of occurrences for each group
+grouped = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
+# Pivot the DataFrame so that the "Tag" column becomes a row index and the "Day" column becomes a column
+QsPerTagPerDay = grouped.pivot(index="Tag", columns="Day", values="Count")
+# Fill any missing values with 0
+QsPerTagPerDay = QsPerTagPerDay.fillna(0)
+print(QsPerTagPerDay)
 
 
 # 7.       get the top ownerId answering in each tags
+# Merge "Tags" and "Answers" datasets on their respective corresponding "Id" column
+TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
+# Group the merged DataFrame by Tag and OwnerUserId and calculate the sum of the Score for each group
+summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
+# Get the OwnerUserId with the highest Score for each Tag
+topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
+topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
+#sort by score to view top
+topScoreOwners.sort_values('Score', ascending=False, inplace=True)
+print(topScoreOwners)
 
 
 # 8.       number of answers per question
