@@ -57,3 +57,6 @@ print(sortedDates, "\n")
 
 
 #9.       Find the questions which are still not answered?
+unanswered = qDataset[~qDataset["Id"].isin(aDataset["ParentId"])]
+print("Question 5: Find the questions which are still not answered\n")
+print(unanswered)
