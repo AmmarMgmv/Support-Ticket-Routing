@@ -76,6 +76,9 @@ print(topScoreOwners)
 
 
 # 8.       number of answers per question
+NumOfAns = aDataset.groupBy(['ParentID']).size() #count ParentID in aDataset to see how many answers for each question
+print("Question 8: number of answers per question\n")
+print(NumOfAns, "\n")
 
 
 #9.       Find the questions which are still not answered?
