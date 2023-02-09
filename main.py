@@ -59,7 +59,8 @@ grouped = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
 QsPerTagPerDay = grouped.pivot(index="Tag", columns="Day", values="Count")
 # Fill any missing values with 0
 QsPerTagPerDay = QsPerTagPerDay.fillna(0)
-print(QsPerTagPerDay)
+print("Question 6: Count number of questions in each tags per day\n")
+print(QsPerTagPerDay, "\n")
 
 
 # 7.       get the top ownerId answering in each tags
@@ -71,17 +72,18 @@ summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_i
 topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
 topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
 #sort by score to view top
-topScoreOwners.sort_values('Score', ascending=False, inplace=True)
-print(topScoreOwners)
+sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
+print("Question 7: get the top ownerId answering in each tags\n")
+print(sortedTopScoreOwners, "\n")
 
 
 # 8.       number of answers per question
-NumOfAns = aDataset.groupBy(['ParentID']).size() #count ParentID in aDataset to see how many answers for each question
+NumOfAns = aDataset.groupby(['ParentId']).size() #count ParentID in aDataset to see how many answers for each question
 print("Question 8: number of answers per question\n")
 print(NumOfAns, "\n")
 
 
 #9.       Find the questions which are still not answered?
 unanswered = qDataset[~qDataset["Id"].isin(aDataset["ParentId"])]
-print("Question 5: Find the questions which are still not answered\n")
+print("Question 9: Find the questions which are still not answered\n")
 print(unanswered)
