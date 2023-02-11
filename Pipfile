@@ -8,6 +8,7 @@ dash = "*"
 spacy = "*"
 whoosh = "*"
 pandas = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 

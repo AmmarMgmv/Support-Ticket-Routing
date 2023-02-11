@@ -1,5 +1,9 @@
 # import the package to work on the datasets
 import pandas as pd
+from spacy.lang.en import English
+from bs4 import BeautifulSoup
+
+nlp = English()
 
 # import the datasets to be worked with (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
@@ -19,7 +23,7 @@ qOwner = qDataset.loc[:, "OwnerUserId"]
 aOwner = aDataset.loc[:, "OwnerUserId"]
 
 owners = pd.concat([qOwner, aOwner]) #combine the 2 above lists
-uniqueOwners = pd.unique(owners)    
+uniqueOwners = pd.unique(owners)
 filteredUniqueOwners = pd.Series(uniqueOwners).dropna().astype('int').values #gets rid of invalid values and converts ID to int type
 print("Question 2: Get the list and count of unique ownerIds")
 print("Unique ID's in floating point representation: ", uniqueOwners, "\nNumber of owner id's: ", len(uniqueOwners))
@@ -87,3 +91,31 @@ print(NumOfAns, "\n")
 unanswered = qDataset[~qDataset["Id"].isin(aDataset["ParentId"])]
 print("Question 9: Find the questions which are still not answered\n")
 print(unanswered)
+
+
+#   remove html tags in the body of questions
+def remove_tags(text):
+    soup = BeautifulSoup(text, 'html.parser')
+    return soup.get_text()
+
+
+
+def remove_stopwords(text):
+    if text:
+        doc = nlp(text.lower())
+        #   remove the stop words and punctuations
+        result = [token.text for token in doc if (token.text not in nlp.Defaults.stop_words) and (not token.is_punct)]
+        return " ".join(result)
+    else:
+        return text
+
+
+#   remove stop words and html tags for both title and body parts of each tag
+TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on = "Id")
+groupedQs = TagsQs.groupby(["Tag"])
+for name, group in groupedQs:
+    print(name)
+    group["processed_title"] = group["Title"].fillna('').apply(remove_stopwords)
+    group["processed_body"] = group["Body"].fillna('').apply(remove_tags).apply(remove_stopwords)
+    print(group[["Title", "processed_title"]].head(3))
+    print(group[["Body", "processed_body"]].head(3))
