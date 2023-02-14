@@ -1,9 +1,11 @@
 # import the package to work on the datasets
 import pandas as pd
-from spacy.lang.en import English
+import spacy
 from lxml.html import fromstring
 
-nlp = English()
+#still contains: 'lemmatizer', 'tagger
+nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec','attribute_ruler', 'ner']) 
+print(nlp.pipe_names)
 
 # import the datasets to be worked with (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
@@ -99,22 +101,45 @@ def remove_tags(text):
     return str(toParse.text_content())
 
 
-def remove_stopwords(text):
-    if text:
-        doc = nlp(text.lower())
-        #   remove the stop words and punctuations
-        result = [token.text for token in doc if (token.text not in nlp.Defaults.stop_words) and (not token.is_punct)]
-        return " ".join(result)
-    else:
-        return text
+# remove stopwords from a column `column` in a DataFrame `dataframe`
+# returns a list to be used by replacing worked on column or adding as a new column
+def remove_stopwords(dataframe: pd.DataFrame , column: str) -> list:
+    cleanedColumn = []
+    for text in nlp.pipe(dataframe[column], disable=['lemmatizer', 'tagger']):
+        cleanedText = [token.text for token in text if not token.is_stop and not token.is_punct]
+        cleanedColumn.append(" ".join(cleanedText))
+    return cleanedColumn
+
+# lemmatize all words from a column `column` in a DataFrame `dataframe`
+# returns a list to be used by replacing worked on column or adding as a new column
+def lemmatize(dataframe: pd.DataFrame, column: str) -> list:
+    lematizedColumn = []
+    for text in nlp.pipe(dataframe[column], disable=['tagger']):
+        lemmatizedText = [token.lemma_ for token in text]
+        lematizedColumn.append(" ".join(lemmatizedText))
+    return lematizedColumn
+
+
+# remove all stop words and lemmatize all words from a column `column` in a DataFrame `dataframe`
+# returns a list to be used by replacing worked on column or adding as a new column
+def cleanAndLemmatize(dataframe: pd.DataFrame, column: str) -> list:
+    lematizedColumn = []
+    for text in nlp.pipe(dataframe[column], disable=['tagger']):
+        lemmatizedText = [token.lemma_ for token in text if not token.is_stop and not token.is_punct]
+        lematizedColumn.append(" ".join(lemmatizedText))
+    return lematizedColumn
 
 
 #   remove stop words and html tags for both title and body parts of each tag
-TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on = "Id")
-groupedQs = TagsQs.groupby(["Tag"])
-for name, group in groupedQs:
-    print(name)
-    group["processed_title"] = group["Title"].fillna('').apply(remove_stopwords)
-    group["processed_body"] = group["Body"].fillna('').apply(remove_tags).apply(remove_stopwords)
-    print(group[["Title", "processed_title"]].head(3))
-    print(group[["Body", "processed_body"]].head(3))
+qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
+qDataset['Cleaned Title'] = remove_stopwords(qDataset, 'Title')
+qDataset['Cleaned Body'] = remove_stopwords(qDataset, 'Cleaned Body')
+
+print(qDataset[["Title", "Cleaned Title"]].head(3))
+print(qDataset[["Body", "Cleaned Body"]].head(3))
+
+qDataset['Title'] = qDataset['Cleaned Title']
+qDataset['Body'] = qDataset['Cleaned Body']
+qDataset.drop('Cleaned Title', axis=1, inplace=True) #replace and remove 'Cleaned Title' column    # axis=1 means delete a column
+qDataset.drop('Cleaned Body', axis=1, inplace=True) #replace and remove 'Cleaned Body' column      # axis=0 would mean delete a row
+TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
