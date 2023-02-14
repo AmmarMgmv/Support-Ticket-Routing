@@ -1,7 +1,7 @@
 # import the package to work on the datasets
 import pandas as pd
 from spacy.lang.en import English
-from bs4 import BeautifulSoup
+from lxml.html import fromstring
 
 nlp = English()
 
@@ -95,9 +95,8 @@ print(unanswered)
 
 #   remove html tags in the body of questions
 def remove_tags(text):
-    soup = BeautifulSoup(text, 'html.parser')
-    return soup.get_text()
-
+    toParse = fromstring(text)
+    return str(toParse.text_content())
 
 
 def remove_stopwords(text):
