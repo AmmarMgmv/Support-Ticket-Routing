@@ -143,3 +143,12 @@ qDataset['Body'] = qDataset['Cleaned Body']
 qDataset.drop('Cleaned Title', axis=1, inplace=True) #replace and remove 'Cleaned Title' column    # axis=1 means delete a column
 qDataset.drop('Cleaned Body', axis=1, inplace=True) #replace and remove 'Cleaned Body' column      # axis=0 would mean delete a row
 TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+
+#   post-tagging: get nouns, verbs etc.
+#   get the text of Qdatabase titile and body
+QTitle = nlp(qDataset['Title'])
+QBody = nlp(qDataset['Body'])
+for text in Qtitle:
+    print(text.text, text.pos_)     # post-tagging for the title
+for text in QBody:
+    print(text.text, text.pos_)     # post-tagging for the body
