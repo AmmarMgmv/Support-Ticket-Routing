@@ -8,6 +8,7 @@ dash = "*"
 spacy = "*"
 whoosh = "*"
 pandas = "*"
+lxml = "*"
 
 [dev-packages]
 
