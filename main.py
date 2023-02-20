@@ -1,25 +1,41 @@
+
+from dash import Dash, dash_table, dcc, html
+from dash.dependencies import Input, Output
 import pandas as pd
-import plotly.express as px
 
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
+TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
+summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
+topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
+topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
+sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
+df=sortedTopScoreOwners
 
-#pie chart to show the top queried tags
+#table that shows top userID by tag and their score, also allows to user to search
+#------------------------------------------------------------------------------
+app = Dash(__name__)
 
-sortedTags = tagDataset.groupby(["Tag"]).size() 
-sortByTop = sortedTags.sort_values(ascending=False)
-data = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
+app.layout = dash_table.DataTable(
+    df.to_dict('records'),
+     columns=[
+        {'name': 'Issue', 'id': 'Tag'},
+        {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
+        {'name': 'Score', 'id': 'Score'},
+    ],
+    filter_action='native',
 
-#Using the top 15 queried tags to display
-data = data.head(15)
-fig = px.pie(data, values='Occurrences', names='Tag', title='No. of questions by tag')
-fig.show()
+    style_table={
+        'height': 15,
+    },
+    style_data={
+        'width': '180 px', 'minWidth': '180 px', 'maxWidth': '180 px',
+        'overflow': 'hidden',
+        'textOverflow': 'ellipsis',
+    },
+    )
 
-
-#bar chart to show the number of queries by year
-
-datesByYear = pd.DataFrame(pd.to_datetime(qDataset["CreationDate"]).dt.year)
-sortedDates = datesByYear.groupby(["CreationDate"]).size()
-fig = px.bar(sortedDates, x=sortedDates.index, y=0, title='Number of queries by year', labels={0:'No. of Queries'})
-fig.show()
+if __name__ == '__main__':
+    app.run_server(debug=True)
