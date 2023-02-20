@@ -1,5 +1,5 @@
-# import the package to work on the datasets
 import pandas as pd
+from dataReader import askQuestions
 import spacy
 from lxml.html import fromstring
 
@@ -7,11 +7,15 @@ from lxml.html import fromstring
 nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec','attribute_ruler', 'ner']) 
 print(nlp.pipe_names)
 
-# import the datasets to be worked with (changed encoding as default is utf-8, which
+
+# Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+
+
+askQuestions(tagDataset, qDataset, aDataset)
 
 #   remove html tags in the body of questions
 def remove_tags(text):
@@ -87,3 +91,4 @@ for text in QTitle:
     print(text.text, text.pos_)     # post-tagging for the title
 for text in QBody:
     print(text.text, text.pos_)     # post-tagging for the body
+
