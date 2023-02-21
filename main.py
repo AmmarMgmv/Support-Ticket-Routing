@@ -2,6 +2,8 @@ import pandas as pd
 from dataReader import askQuestions
 import spacy
 from lxml.html import fromstring
+from collections import Counter
+from sklearn.feature_extraction.text import CountVectorizer
 
 #still contains: 'lemmatizer', 'tagger
 nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec','attribute_ruler', 'ner']) 
@@ -15,7 +17,7 @@ qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 
-askQuestions(tagDataset, qDataset, aDataset)
+#askQuestions(tagDataset, qDataset, aDataset)
 
 #   remove html tags in the body of questions
 def remove_tags(text):
@@ -50,45 +52,58 @@ def cleanAndLemmatize(dataframe: pd.DataFrame, column: str) -> list:
         lematizedColumn.append(" ".join(lemmatizedText))
     return lematizedColumn
 
+# remove all stop words and POS tag all words from a column `column` in a DataFrame `dataframe`
+# returns a list to be used by replacing worked on column or adding as a new column
+def posTag(dataframe: pd.DataFrame, column: str) -> list:
+    posTagged = []
+    for text in nlp.pipe(dataframe[column]):
+        posTags = [(token.text, token.pos_) for token in text if not token.is_stop and not token.is_punct]
+        posTagged.append(posTags)
+    return posTagged
+
 # Load the cleaned CSV file (if it exists)
 try:
-    qDataset = pd.read_csv("Dataset/Questions_cleaned.csv")
+    qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
     print("Cleaned dataset loaded from file")
 except FileNotFoundError:
     # If the cleaned CSV file does not exist, then clean the dataset and save it to file
     print("Cleaning dataset...")
     qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-    qDataset['Cleaned Title'] = remove_stopwords(qDataset, 'Title')
-    qDataset['Cleaned Body'] = remove_stopwords(qDataset, 'Cleaned Body')
+    qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
+    qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
     qDataset['Title'] = qDataset['Cleaned Title']
     qDataset['Body'] = qDataset['Cleaned Body']
     qDataset.drop('Cleaned Title', axis=1, inplace=True)
     qDataset.drop('Cleaned Body', axis=1, inplace=True)
-    qDataset.to_csv("Dataset/Questions_cleaned.csv", index=False)
+    qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
     print("Cleaned dataset saved to file")
 
 TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+groups = TagsQs.groupby('Tag')
 
-# remove stop words and html tags for both title and body parts of each tag
-# qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-# qDataset['Cleaned Title'] = remove_stopwords(qDataset, 'Title')
-# qDataset['Cleaned Body'] = remove_stopwords(qDataset, 'Cleaned Body')
+# Get most common/top words for each tag
+for name, group in groups:
+    # Join Title and Body columns
+    text = group['Title'].str.cat(group['Body'], sep=' ')
+    # Replace NaN values with an empty string
+    text = text.fillna('')
+    # Count how many times a word appears
+    count_vectorizer = CountVectorizer()
+    word_counts = count_vectorizer.fit_transform(text)
+    # Find what the most common words are
+    word_count_dict = dict(zip(count_vectorizer.get_feature_names_out(), word_counts.sum(axis=0).tolist()[0]))
+    most_common_words = Counter(word_count_dict).most_common(5)
+    print(f"Most common words for tag '{name}':")
+    print(most_common_words)
 
-# # print(qDataset[["Title", "Cleaned Title"]].head(3))
-# # print(qDataset[["Body", "Cleaned Body"]].head(3))
-
-# qDataset['Title'] = qDataset['Cleaned Title']
-# qDataset['Body'] = qDataset['Cleaned Body']
-# qDataset.drop('Cleaned Title', axis=1, inplace=True) #replace and remove 'Cleaned Title' column    # axis=1 means delete a column
-# qDataset.drop('Cleaned Body', axis=1, inplace=True) #replace and remove 'Cleaned Body' column      # axis=0 would mean delete a row
-# TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+#print(TagsQs.head())
 
 #   post-tagging: get nouns, verbs etc.
 #   get the text of Qdatabase titile and body
-QTitle = nlp(qDataset['Title'])
-QBody = nlp(qDataset['Body'])
-for text in QTitle:
-    print(text.text, text.pos_)     # post-tagging for the title
-for text in QBody:
-    print(text.text, text.pos_)     # post-tagging for the body
+# QTitle = nlp(qDataset['Title'])
+# QBody = nlp(qDataset['Body'])
+# for text in QTitle:
+#     print(text.text, text.pos_)     # post-tagging for the title
+# for text in QBody:
+#     print(text.text, text.pos_)     # post-tagging for the body
 
