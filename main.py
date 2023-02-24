@@ -10,7 +10,7 @@ from lxml.html import fromstring
 # import the datasets to be worked with (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
 #tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions_cleaned.csv", encoding = "ISO-8859-1")
 #aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 #1.       get the list of Unique tags. (+count the unique tags)
@@ -153,6 +153,7 @@ from whoosh.fields import Schema, TEXT
 from whoosh import index, qparser
 from whoosh.analysis import RegexTokenizer
 from whoosh.writing import BufferedWriter
+from whoosh.qparser import FuzzyTermPlugin
 import os
 
 # Define the schema for the index
@@ -181,13 +182,13 @@ def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
     schema = ix.schema
     
-    og = qparser.OrGroup.factory(0.5)
+    og = qparser.OrGroup.factory(0.9)
     mp = qparser.MultifieldParser(search_fields, schema, group=og)
-    
-    q = mp.parse(search_query)
+    mp.add_plugin(FuzzyTermPlugin())
+    q = mp.parse(search_query + "~")
     
     with ix.searcher() as searcher:
-        results = searcher.search(q, limit=None)
+        results = searcher.search(q, limit=5)
         
         # Build a dictionary of search results
         results_dict = {}
@@ -206,4 +207,4 @@ while True:
         results = index_search("index_dir", ["Body"], query)
         print("Search results:")
         for result in results:
-            print(result)
+            print(result + "\n")
