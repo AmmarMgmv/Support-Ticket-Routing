@@ -149,15 +149,16 @@ qDataset = pd.read_csv("Dataset\Questions_cleaned.csv", encoding = "ISO-8859-1")
 
 # fuzzy search on question data set
 
-from whoosh.fields import Schema, TEXT
+from whoosh.fields import Schema, TEXT, ID
 from whoosh import index, qparser
-from whoosh.analysis import RegexTokenizer
+from whoosh.analysis import RegexTokenizer, LowercaseFilter
 from whoosh.writing import BufferedWriter
 from whoosh.qparser import FuzzyTermPlugin
 import os
 
+my_analyzer = RegexTokenizer() | LowercaseFilter()
 # Define the schema for the index
-schema = Schema(Body=TEXT(stored=True, analyzer=RegexTokenizer()))
+schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer))
 
 # Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
