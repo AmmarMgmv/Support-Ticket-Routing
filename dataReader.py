@@ -18,8 +18,6 @@ def uniqueTags(datasetT):
     #loc: choose column by name
     tags = datasetT.loc[:,"Tag"] 
     uniqueTags = pd.unique(tags) 
-    print("Question 1: Get the list and count of unique tags")
-    print(uniqueTags, "\nNumber of tags: ", len(uniqueTags), "\n")
 
 
 # This function gets the list and count of unique owner ID's
@@ -30,9 +28,6 @@ def uniqueOwnerId(DatasetQ, DatasetA):
     uniqueOwners = pd.unique(owners)   
     # Gets rid of invalid values and converts ID to int type 
     filteredUniqueOwners = pd.Series(uniqueOwners).dropna().astype('int').values 
-    print("Question 2: Get the list and count of unique owner ID's")
-    print("Unique ID's in floating point representation: ", uniqueOwners, "\nNumber of owner id's: ", len(uniqueOwners))
-    print("Unique ID's in integer representation: ", filteredUniqueOwners, "\nNumber of owner id's: ", len(filteredUniqueOwners), "\n")
 
 
 # This function counts the number of questions per tag and sorts in descending order
@@ -40,19 +35,12 @@ def questionsPerTag(datasetT):
     sortedTags = datasetT.groupby(["Tag"]).size() #count how many in each "group: "Tag" "
     sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
     tagsDF = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
-    print("Question 3: Count the number of questions per tag and sorts in descending order")
-    print("Tags sorted from most used to least used: \n", sortByTop, "\nTop tag: ", sortByTop.index[0], "\n")
     return tagsDF
 
 # This function gets the number of questions asked by each owner and in each category
 def questionsPerOwner(datasetQ, datasetA):
-    print("Question 4: Get the number of questions asked by each owner and in each category\n")
     sortedQs = datasetQ.groupby(["OwnerUserId"]).size()
-    print("Question 4: Questions Dataset:\n", sortedQs, "\n")
     sortedAns = datasetA.groupby(["ParentId"]).size()
-    print("Question 4: Answers Dataset:\n", sortedAns, "\n")
-    print()
-
 
 # This function counts the number of questions per day
 def questionsPerDay(datasetQ):
@@ -60,7 +48,6 @@ def questionsPerDay(datasetQ):
     dates = pd.DataFrame(pd.to_datetime(datasetQ["CreationDate"]).dt.strftime(format))
     sortedDates = dates.groupby(["CreationDate"]).size()
     qsPerDay = pd.DataFrame({"Date": sortedDates.index, "QsAsked": sortedDates.values})
-    print("Question 5: Count the number of questions per day\n", sortedDates, "\n")
     return qsPerDay
 
 
@@ -75,7 +62,6 @@ def questionsPerTagPerDay(datasetT, datasetQ):
     QsPerTagPerDay = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
     # Fill any missing values with 0
     QsPerTagPerDay = QsPerTagPerDay.fillna(0)
-    print("Question 6: Count the number of questions per tag per day\n", QsPerTagPerDay, "\n")
     return QsPerTagPerDay
 
 
@@ -90,20 +76,17 @@ def topOwnerIdTag(datasetT, datasetA):
     topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
     # Sort by score to view top
     sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
-    print("Question 7: Get the top ownerId answering in each tag\n", sortedTopScoreOwners, "\n")
     return sortedTopScoreOwners
 
 
 # This function gets the number of answers per question
 def answersPerQuestion(datasetA):
     NumOfAns = datasetA.groupby(['ParentId']).size() #count ParentID in aDataset to see how many answers for each question
-    print("Question 8: Get the number of answers per question\n", NumOfAns, "\n")
 
 
 # This function gets the unanswered questions
 def unansweredQuestions(datasetQ, datasetA):
     unanswered = datasetQ[~datasetQ["Id"].isin(datasetA["ParentId"])]
-    print("Question 9: Find the questions which are still not answered\n", unanswered['Title'])
     
 # This function gets the number of questions per month of each year
 def questionsPerMonthAndYear(datasetT, datasetQ):
