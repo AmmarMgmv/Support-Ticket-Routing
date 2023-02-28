@@ -32,7 +32,7 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 tagsDF = questionsPerTag(tagDataset)
 QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
 QsPerDay = questionsPerDay(qDataset)
-sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset
+sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
 
 #   remove html tags in the body of questions
 def remove_tags(text):
@@ -144,7 +144,7 @@ filters = html.Div(children=[
             'textOverflow': 'ellipsis',
         },
     )),
-    html.H1(children='Graph showing tags searched by month and year',style={'textAlign': 'center','font-family':'Arial'}),
+    html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
     dcc.Graph(
         id='MY-graph',
         figure=fig2
