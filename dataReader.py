@@ -42,7 +42,7 @@ def questionsPerTag(datasetT):
     tagsDF = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
     print("Question 3: Count the number of questions per tag and sorts in descending order")
     print("Tags sorted from most used to least used: \n", sortByTop, "\nTop tag: ", sortByTop.index[0], "\n")
-
+    return tagsDF
 
 # This function gets the number of questions asked by each owner and in each category
 def questionsPerOwner(datasetQ, datasetA):
@@ -61,6 +61,7 @@ def questionsPerDay(datasetQ):
     sortedDates = dates.groupby(["CreationDate"]).size()
     qsPerDay = pd.DataFrame({"Date": sortedDates.index, "QsAsked": sortedDates.values})
     print("Question 5: Count the number of questions per day\n", sortedDates, "\n")
+    return qsPerDay
 
 
 # This function counts the number of questions per tag per day
@@ -75,6 +76,7 @@ def questionsPerTagPerDay(datasetT, datasetQ):
     # Fill any missing values with 0
     QsPerTagPerDay = QsPerTagPerDay.fillna(0)
     print("Question 6: Count the number of questions per tag per day\n", QsPerTagPerDay, "\n")
+    return QsPerTagPerDay
 
 
 # This function gets the top ownerId answering in each tag
@@ -89,6 +91,7 @@ def topOwnerIdTag(datasetT, datasetA):
     # Sort by score to view top
     sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
     print("Question 7: Get the top ownerId answering in each tag\n", sortedTopScoreOwners, "\n")
+    return sortedTopScoreOwners
 
 
 # This function gets the number of answers per question
@@ -110,3 +113,4 @@ def questionsPerMonthAndYear(datasetT, datasetQ):
     dates = pd.DataFrame(pd.to_datetime(datasetQ["CreationDate"]).dt.strftime(format))
     sortedDates = dates.groupby(["CreationDate"]).size()
     QsPerMonthYear = pd.DataFrame({'Date' : sortedDates.index, 'Count' : sortedDates.values})
+    return QsPerMonthYear
