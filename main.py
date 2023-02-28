@@ -1,6 +1,6 @@
 
 import pandas as pd
-from dataReader import askQuestions
+from dataReader import *
 import spacy
 from lxml.html import fromstring
 
@@ -22,14 +22,17 @@ from dash import dash_table
 import dash_table_experiments as dt
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
+import plotly.express as px
 
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 
-
-askQuestions(tagDataset, qDataset, aDataset)
+tagsDF = questionsPerTag(tagDataset)
+QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
+QsPerDay = questionsPerDay(qDataset)
+sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset
 
 #   remove html tags in the body of questions
 def remove_tags(text):
@@ -117,7 +120,7 @@ app = dash.Dash()
 
 
 filters = html.Div(children=[
-    html.H1(children='Graph showing the top 15 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
+    html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
     dcc.Graph(
         id='tag-graph',
         figure=fig
