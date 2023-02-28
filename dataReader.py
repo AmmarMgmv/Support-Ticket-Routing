@@ -11,6 +11,7 @@ def askQuestions(tData, qData, aData):
     topOwnerIdTag(tData, aData)
     answersPerQuestion(aData)
     unansweredQuestions(qData, aData)
+    questionsPerMonthAndYear(tData, aData)
 
 # This function gets the list and count of unique tags
 def uniqueTags(datasetT):
@@ -100,3 +101,12 @@ def answersPerQuestion(datasetA):
 def unansweredQuestions(datasetQ, datasetA):
     unanswered = datasetQ[~datasetQ["Id"].isin(datasetA["ParentId"])]
     print("Question 9: Find the questions which are still not answered\n", unanswered['Title'])
+    
+# This function gets the number of questions per month of each year
+def questionsPerMonthAndYear(datasetT, datasetA):
+    TagsQuestions = pd.merge(tagDataset, qDataset, on="Id", how="inner")
+    TagsQuestions['CreationDate'] = pd.to_datetime(TagsQuestions['CreationDate'])
+    format = "%Y-%m"
+    dates = pd.DataFrame(pd.to_datetime(qDataset["CreationDate"]).dt.strftime(format))
+    sortedDates = dates.groupby(["CreationDate"]).size()
+    QsPerMonthYear = pd.DataFrame({'Date' : sortedDates.index, 'Count' : sortedDates.values})
