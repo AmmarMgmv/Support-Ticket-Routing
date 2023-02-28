@@ -38,6 +38,7 @@ def uniqueOwnerId(DatasetQ, DatasetA):
 def questionsPerTag(datasetT):
     sortedTags = datasetT.groupby(["Tag"]).size() #count how many in each "group: "Tag" "
     sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
+    tagsDF = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
     print("Question 3: Count the number of questions per tag and sorts in descending order")
     print("Tags sorted from most used to least used: \n", sortByTop, "\nTop tag: ", sortByTop.index[0], "\n")
 
@@ -57,6 +58,7 @@ def questionsPerDay(datasetQ):
     format = "%Y-%m-%d"
     dates = pd.DataFrame(pd.to_datetime(datasetQ["CreationDate"]).dt.strftime(format))
     sortedDates = dates.groupby(["CreationDate"]).size()
+    qsPerDay = pd.DataFrame({"Date": sortedDates.index, "QsAsked": sortedDates.values})
     print("Question 5: Count the number of questions per day\n", sortedDates, "\n")
 
 
@@ -68,9 +70,7 @@ def questionsPerTagPerDay(datasetT, datasetQ):
     TagsQuestions['CreationDate'] = pd.to_datetime(TagsQuestions['CreationDate'])
     TagsQuestions['Day'] = TagsQuestions['CreationDate'].dt.date
     # Group by "Day" and "Tag" columns, then count number of occurrences for each group
-    grouped = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
-    # Pivot the DataFrame so that the "Tag" column becomes a row index and the "Day" column becomes a column
-    QsPerTagPerDay = grouped.pivot(index="Tag", columns="Day", values="Count")
+    QsPerTagPerDay = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
     # Fill any missing values with 0
     QsPerTagPerDay = QsPerTagPerDay.fillna(0)
     print("Question 6: Count the number of questions per tag per day\n", QsPerTagPerDay, "\n")
