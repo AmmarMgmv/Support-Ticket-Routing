@@ -5,8 +5,8 @@ from lxml.html import fromstring
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 
-#still contains: 'lemmatizer', 'tagger
-nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec','attribute_ruler', 'ner']) 
+#still contains: 'lemmatizer', 'tagger', 'attribute_ruler'
+nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec', 'ner']) 
 print(nlp.pipe_names)
 
 
@@ -38,7 +38,7 @@ def remove_stopwords(dataframe: pd.DataFrame , column: str) -> list:
 # returns a list to be used by replacing worked on column or adding as a new column
 def lemmatize(dataframe: pd.DataFrame, column: str) -> list:
     lematizedColumn = []
-    for text in nlp.pipe(dataframe[column], disable=['tagger']):
+    for text in nlp.pipe(dataframe[column]):
         lemmatizedText = [token.lemma_ for token in text]
         lematizedColumn.append(" ".join(lemmatizedText))
     return lematizedColumn
@@ -47,7 +47,7 @@ def lemmatize(dataframe: pd.DataFrame, column: str) -> list:
 # returns a list to be used by replacing worked on column or adding as a new column
 def cleanAndLemmatize(dataframe: pd.DataFrame, column: str) -> list:
     lematizedColumn = []
-    for text in nlp.pipe(dataframe[column], disable=['tagger']):
+    for text in nlp.pipe(dataframe[column]):
         lemmatizedText = [token.lemma_ for token in text if not token.is_stop and not token.is_punct]
         lematizedColumn.append(" ".join(lemmatizedText))
     return lematizedColumn
