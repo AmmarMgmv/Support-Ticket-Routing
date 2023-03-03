@@ -10,6 +10,8 @@ whoosh = "*"
 pandas = "*"
 lxml = "*"
 scikit-learn = "*"
+counter = "*"
+datareader = "*"
 
 [dev-packages]
 
