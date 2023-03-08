@@ -83,7 +83,7 @@ TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
 groups = TagsQs.groupby('Tag')
 
 # Get most common/top words for each tag
-## Create a new csv file with common words connected to each tag
+## Create a new dataframe with common words connected to each tag
 tag_common = {}
 for name, group in groups:
     # Join Title and Body columns
@@ -102,7 +102,7 @@ for name, group in groups:
     tag_common.update({name: common})
     print(f"Most common words for tag '{name}':")
     print(most_common_words)
-pd.DataFrame(tag_common.items(), columns=['Tag', 'Common Words']).to_csv("Dataset/Tags_common.csv", index=False)
+TagsCommons = pd.DataFrame(tag_common.items(), columns=['Tag', 'Common Words'])
 
 #print(TagsQs.head())
 
