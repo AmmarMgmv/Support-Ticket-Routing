@@ -12,10 +12,11 @@ print(nlp.pipe_names)
 
 # Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
-tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
-aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
+## temporarily reads the first 200 rows of csv files
+tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 200, encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 200, encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 200, encoding = "ISO-8859-1")
 
 #askQuestions(tagDataset, qDataset, aDataset)
 
@@ -82,6 +83,8 @@ TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
 groups = TagsQs.groupby('Tag')
 
 # Get most common/top words for each tag
+## Create a new csv file with common words connected to each tag
+tag_common = {}
 for name, group in groups:
     # Join Title and Body columns
     text = group['Title'].str.cat(group['Body'], sep=' ')
@@ -93,8 +96,13 @@ for name, group in groups:
     # Find what the most common words are
     word_count_dict = dict(zip(count_vectorizer.get_feature_names_out(), word_counts.sum(axis=0).tolist()[0]))
     most_common_words = Counter(word_count_dict).most_common(5)
+    common = []
+    for word in most_common_words:
+        common.append(word[0])
+    tag_common.update({name: common})
     print(f"Most common words for tag '{name}':")
     print(most_common_words)
+pd.DataFrame(tag_common.items(), columns=['Tag', 'Common Words']).to_csv("Dataset/Tags_common.csv", index=False)
 
 #print(TagsQs.head())
 
