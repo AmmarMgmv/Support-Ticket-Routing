@@ -104,14 +104,32 @@ for name, group in groups:
     print(most_common_words)
 TagsCommons = pd.DataFrame(tag_common.items(), columns=['Tag', 'Common Words'])
 
-#print(TagsQs.head())
+# find overlapping words across tags
+overlap_words = {}
+# put all the common words obtained obove in a list
+all_common_words = []
+for key in tag_common:
+    for num in range(5):
+        all_common_words.append(tag_common[key][num])
 
-#   post-tagging: get nouns, verbs etc.
-#   get the text of Qdatabase titile and body
-# QTitle = nlp(qDataset['Title'])
-# QBody = nlp(qDataset['Body'])
-# for text in QTitle:
-#     print(text.text, text.pos_)     # post-tagging for the title
-# for text in QBody:
-#     print(text.text, text.pos_)     # post-tagging for the body
+# check for overlapping words and add them to overlap_words{}
+print("Overlapping words accross tags: ")
+already_checked = []
+for key in tag_common:
+    for num in range(5):
+        count = 0
+        for item in all_common_words:
+            if tag_common[key][num] == item:
+                count = count + 1
+        if count > 1 and tag_common[key][num] not in already_checked:
+            already_checked.append(tag_common[key][num])
+            print(f"The word '{tag_common[key][num]}' overlaps {str(count)} times in the following tags: ")
+            tag = []
+            for key_overlap in tag_common:
+                if tag_common[key][num] in tag_common[key_overlap]:
+                    tag.append(key_overlap)
+                    print(key_overlap)
+            # add the overlapping words and corresponding tags to overlap_words{}
+            overlap_words[tag_common[key][num]] = tag                
+
 
