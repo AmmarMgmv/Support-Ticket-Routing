@@ -9,6 +9,8 @@ spacy = "*"
 whoosh = "*"
 pandas = "*"
 lxml = "*"
+scikit-learn = "*"
+counter = "*"
 
 [dev-packages]
 
