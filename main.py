@@ -1,3 +1,4 @@
+
 import pandas as pd
 from dataReader import askQuestions
 import spacy
@@ -12,6 +13,18 @@ print(nlp.pipe_names)
 
 # Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
+
+import numpy as np
+import pandas as pd
+from itertools import product
+import dash
+from dash import html
+from dash import dcc
+from dash import dash_table
+import dash_table_experiments as dt
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
@@ -20,8 +33,6 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 # tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 200, encoding = "ISO-8859-1")
 # qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 200, encoding = "ISO-8859-1")
 # aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 200, encoding = "ISO-8859-1")
-
-#askQuestions(tagDataset, qDataset, aDataset)
 
 #   remove html tags in the body of questions
 def remove_tags(text):
@@ -188,4 +199,69 @@ detectTags(qDataset, overlap_words)
 #         all_common_words.append(tag_common[key][num])
 
 
+
+
+sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
+sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
+df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
+df_tag.head(15)
+
+TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
+summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
+topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
+topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
+sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
+df=sortedTopScoreOwners
+
+
+
+app = dash.Dash()
+
+
+
+filters = html.Div(children=[
+        html.Div(dash_table.DataTable(
+            df_tag.to_dict('records'),
+            columns=[
+                {'name': 'Issue', 'id': 'Tag'},
+                {'name': 'Amount', 'id': 'Occurrences'},
+            ],
+            filter_action='native',
+            page_size=20,
+            fixed_rows={'headers': True},
+            style_header={
+                'backgroundColor': 'rgb(30, 30, 30)',
+                'color': 'white',
+            },
+            style_data={
+                'overflow': 'hidden',
+                'textOverflow': 'ellipsis',
+            },
+    )),
+    html.Div(dash_table.DataTable(
+        df.to_dict('records'),
+        columns=[
+            {'name': 'Issue', 'id': 'Tag'},
+            {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
+            {'name': 'Score', 'id': 'Score'},
+        ],
+        filter_action='native',
+        page_size=20,
+        fixed_rows={'headers': True},
+        style_header={
+                'backgroundColor': 'rgb(30, 30, 30)',
+                'color': 'white',
+            },
+        style_data={
+            'overflow': 'hidden',
+            'textOverflow': 'ellipsis',
+        },
+        ))
+])
+
+
+app.layout = html.Div(children=[filters])
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
