@@ -3,10 +3,19 @@ import pandas as pd
 import spacy
 from lxml.html import fromstring
 import re
-from dash import html
 from dataReader import *
 from dataManipulator import *
 from dash import dash_table
+import numpy as np
+from itertools import product
+import dash
+from dash import html
+from dash import dcc
+from dash import dash_table
+import dash_table_experiments as dt
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+import plotly.express as px
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -90,9 +99,6 @@ for i, row in qDataset.iterrows():
         break
 writer.commit()
 
-
-
-
 # Function to search the index
 def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
@@ -153,29 +159,58 @@ topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
 sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
 df=sortedTopScoreOwners
 
+tagsDF = questionsPerTag(tagDataset)
+QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
+QsPerDay = questionsPerDay(qDataset)
+sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
+
+fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
+fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
+fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
 app = dash.Dash()
 
 filters = html.Div(children=[
-        html.Div(dash_table.DataTable(
-            df_tag.to_dict('records'),
-            columns=[
-                {'name': 'Issue', 'id': 'Tag'},
-                {'name': 'Amount', 'id': 'Occurrences'},
-            ],
-            filter_action='native',
-            page_size=20,
-            fixed_rows={'headers': True},
-            style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-            },
-            style_data={
-                'overflow': 'hidden',
-                'textOverflow': 'ellipsis',
-            },
-    )),
+    html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
+    dcc.Graph(
+        id='tag-graph',
+        figure=fig
+    ),
+    html.H1(children='Table showing tags and frequency',style={'textAlign': 'center','font-family':'Arial'}),
     html.Div(dash_table.DataTable(
-        df.to_dict('records'),
+        tagsDF.to_dict('records'),
+        columns=[
+            {'name': 'Tag', 'id': 'Tag'},
+            {'name': 'Frequency', 'id': 'Occurrences'},
+        ],
+        filter_action='native',
+        page_size=20,
+        fixed_rows={'headers': True},
+        style_header={
+            'backgroundColor': 'rgb(30, 30, 30)',
+            'color': 'white',
+        },
+        style_data={
+            'overflow': 'hidden',
+            'textOverflow': 'ellipsis',
+        },
+    )),
+    html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
+    dcc.Graph(
+        id='MY-graph',
+        figure=fig2
+    ),
+    html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
+    dcc.Graph(
+        id='questions-graph',
+        figure=fig3
+    ),
+    html.H1(children='Table showing top ID for each tag',
+            style={
+                'textAlign': 'center',
+                'font-family' : 'Arial'
+            }),
+    html.Div(dash_table.DataTable(
+        sortedTopScoreOwners.to_dict('records'),
         columns=[
             {'name': 'Issue', 'id': 'Tag'},
             {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
