@@ -66,58 +66,58 @@ groups = TagsQs.groupby('Tag')
 # 
 # ------------------------------------------------------------------------------------------
 
-def remove_html_tags(text):
-    clean = re.compile('<.*?>')
-    return re.sub(clean, '', text)
+# def remove_html_tags(text):
+#     clean = re.compile('<.*?>')
+#     return re.sub(clean, '', text)
     
-# fuzzy search on question data set
-from whoosh.fields import Schema, TEXT, ID
-from whoosh import index, qparser
-from whoosh.analysis import RegexTokenizer, LowercaseFilter
-from whoosh.writing import BufferedWriter
-from whoosh.qparser import FuzzyTermPlugin
-import os
+# # fuzzy search on question data set
+# from whoosh.fields import Schema, TEXT, ID
+# from whoosh import index, qparser
+# from whoosh.analysis import RegexTokenizer, LowercaseFilter
+# from whoosh.writing import BufferedWriter
+# from whoosh.qparser import FuzzyTermPlugin
+# import os
 
-my_analyzer = RegexTokenizer() | LowercaseFilter()
+# my_analyzer = RegexTokenizer() | LowercaseFilter()
 
-# Define the schema for the index
-schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer))
+# # Define the schema for the index
+# schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer))
 
-# Create the index directory if it doesn't exist
-if not os.path.exists("index_dir"):
-    os.mkdir("index_dir")
+# # Create the index directory if it doesn't exist
+# if not os.path.exists("index_dir"):
+#     os.mkdir("index_dir")
 
-# Create the index and add documents to it
-ix = index.create_in("index_dir", schema)
-writer= ix.writer()
+# # Create the index and add documents to it
+# ix = index.create_in("index_dir", schema)
+# writer= ix.writer()
 
-for i, row in qDataset.iterrows():
-    Body = remove_html_tags (row ["Body"])
-    ##answerBody = remove_html_tags(row["answerBody"])
-    writer.add_document(Body=Body)
-    if i == 10000:
-        break
-writer.commit()
+# for i, row in qDataset.iterrows():
+#     Body = remove_html_tags (row ["Body"])
+#     ##answerBody = remove_html_tags(row["answerBody"])
+#     writer.add_document(Body=Body)
+#     if i == 10000:
+#         break
+# writer.commit()
 
-# Function to search the index
-def index_search(search_fields, search_query):
-    ix = index.open_dir("index_dir")
-    schema = ix.schema
+# # Function to search the index
+# def index_search(search_fields, search_query):
+#     ix = index.open_dir("index_dir")
+#     schema = ix.schema
     
-    og = qparser.OrGroup.factory(0.8)
-    mp = qparser.MultifieldParser(search_fields, schema, group=og)
-    mp.add_plugin(FuzzyTermPlugin())
-    q = mp.parse(search_query + "~")
+#     og = qparser.OrGroup.factory(0.8)
+#     mp = qparser.MultifieldParser(search_fields, schema, group=og)
+#     mp.add_plugin(FuzzyTermPlugin())
+#     q = mp.parse(search_query + "~")
     
-    with ix.searcher() as searcher:
-        results = searcher.search(q, limit=5)
+#     with ix.searcher() as searcher:
+#         results = searcher.search(q, limit=5)
         
-        # Build a dictionary of search results
-        results_dict = {}
-        for hit in results:
-            results_dict[hit.fields()["Body"]] = hit.score
+#         # Build a dictionary of search results
+#         results_dict = {}
+#         for hit in results:
+#             results_dict[hit.fields()["Body"]] = hit.score
             
-        return results_dict
+#         return results_dict
 
 
 #Prompt the user for search queries
@@ -147,90 +147,111 @@ def index_search(search_fields, search_query):
 # 
 # ------------------------------------------------------------------------------------------
 
-sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
-sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
-df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
-df_tag.head(15)
+app = dash.Dash(__name__, use_pages=True)
 
-TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
-summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
-topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
-topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
-sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
-df=sortedTopScoreOwners
+app.layout = html.Div(
+    [
+        #Framework of the main app
+        html.Div("Millennium Management", style = {'fontSize':50, 'textAlign':'center'}),
+        html.Div([
+            dcc.Link(children=page['name']+"  |  ", href=page['path'])
+            for page in dash.page_registry.values()
+        ]),
 
-tagsDF = questionsPerTag(tagDataset)
-QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
-QsPerDay = questionsPerDay(qDataset)
-sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
+        html.Hr(),
 
-fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
-fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
-fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
-app = dash.Dash()
-
-filters = html.Div(children=[
-    html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='tag-graph',
-        figure=fig
-    ),
-    html.H1(children='Table showing tags and frequency',style={'textAlign': 'center','font-family':'Arial'}),
-    html.Div(dash_table.DataTable(
-        tagsDF.to_dict('records'),
-        columns=[
-            {'name': 'Tag', 'id': 'Tag'},
-            {'name': 'Frequency', 'id': 'Occurrences'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-            'backgroundColor': 'rgb(30, 30, 30)',
-            'color': 'white',
-        },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-    )),
-    html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='MY-graph',
-        figure=fig2
-    ),
-    html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='questions-graph',
-        figure=fig3
-    ),
-    html.H1(children='Table showing top ID for each tag',
-            style={
-                'textAlign': 'center',
-                'font-family' : 'Arial'
-            }),
-    html.Div(dash_table.DataTable(
-        sortedTopScoreOwners.to_dict('records'),
-        columns=[
-            {'name': 'Issue', 'id': 'Tag'},
-            {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
-            {'name': 'Score', 'id': 'Score'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-            },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-        ))
-])
-
-app.layout = html.Div(children=[filters])
+        #Content of each page
+        dash.page_container
+    ]
+)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+    
+# sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
+# sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
+# df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
+# df_tag.head(15)
+
+# TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
+# summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
+# topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
+# topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
+# sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
+# df=sortedTopScoreOwners
+
+# tagsDF = questionsPerTag(tagDataset)
+# QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
+# QsPerDay = questionsPerDay(qDataset)
+# sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
+
+# fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
+# fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
+# fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
+# app = dash.Dash()
+
+# filters = html.Div(children=[
+#     html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
+#     dcc.Graph(
+#         id='tag-graph',
+#         figure=fig
+#     ),
+#     html.H1(children='Table showing tags and frequency',style={'textAlign': 'center','font-family':'Arial'}),
+#     html.Div(dash_table.DataTable(
+#         tagsDF.to_dict('records'),
+#         columns=[
+#             {'name': 'Tag', 'id': 'Tag'},
+#             {'name': 'Frequency', 'id': 'Occurrences'},
+#         ],
+#         filter_action='native',
+#         page_size=20,
+#         fixed_rows={'headers': True},
+#         style_header={
+#             'backgroundColor': 'rgb(30, 30, 30)',
+#             'color': 'white',
+#         },
+#         style_data={
+#             'overflow': 'hidden',
+#             'textOverflow': 'ellipsis',
+#         },
+#     )),
+#     html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
+#     dcc.Graph(
+#         id='MY-graph',
+#         figure=fig2
+#     ),
+#     html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
+#     dcc.Graph(
+#         id='questions-graph',
+#         figure=fig3
+#     ),
+#     html.H1(children='Table showing top ID for each tag',
+#             style={
+#                 'textAlign': 'center',
+#                 'font-family' : 'Arial'
+#             }),
+#     html.Div(dash_table.DataTable(
+#         sortedTopScoreOwners.to_dict('records'),
+#         columns=[
+#             {'name': 'Issue', 'id': 'Tag'},
+#             {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
+#             {'name': 'Score', 'id': 'Score'},
+#         ],
+#         filter_action='native',
+#         page_size=20,
+#         fixed_rows={'headers': True},
+#         style_header={
+#                 'backgroundColor': 'rgb(30, 30, 30)',
+#                 'color': 'white',
+#             },
+#         style_data={
+#             'overflow': 'hidden',
+#             'textOverflow': 'ellipsis',
+#         },
+#         ))
+# ])
+
+# app.layout = html.Div(children=[filters])
+
+# if __name__ == '__main__':
+#     app.run_server(debug=True)
