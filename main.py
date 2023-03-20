@@ -100,8 +100,8 @@ for i, row in qDataset.iterrows():
 writer.commit()
 
 # Function to search the index
-def index_search(dirname, search_fields, search_query):
-    ix = index.open_dir(dirname)
+def index_search(search_fields, search_query):
+    ix = index.open_dir("index_dir")
     schema = ix.schema
     
     og = qparser.OrGroup.factory(0.8)
@@ -121,15 +121,15 @@ def index_search(dirname, search_fields, search_query):
 
 
 #Prompt the user for search queries
-while True:
-    query = input("Enter your query (or 0 to exit): ")
-    if query == "0":
-        break
-    else:
-        results = index_search("index_dir", ["Body"], query)
-        print("Search results:")
-        for i, result in enumerate(results, start=1):
-         print(f"{i}. {result}\n")
+# while True:
+#     query = input("Enter your query (or 0 to exit): ")
+#     if query == "0":
+#         break
+#     else:
+#         results = index_search("index_dir", ["Body"], query)
+#         print("Search results:")
+#         for i, result in enumerate(results, start=1):
+#          print(f"{i}. {result}\n")
 
 # ------------------------------------------------------------------------------------------
 # 
