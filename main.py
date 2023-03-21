@@ -16,6 +16,8 @@ import dash_table_experiments as dt
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import plotly.express as px
+from dash import callback_context
+from dash.dependencies import Input, Output, State
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -25,9 +27,9 @@ import plotly.express as px
 
 # Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
-tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
-aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+# tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
+# qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+# aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 # ## FOR DEBUG: temporarily reads the first 200 rows of csv files
 # tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 2, encoding = "ISO-8859-1")
@@ -41,24 +43,24 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 # ------------------------------------------------------------------------------------------
 
 # Load the cleaned CSV file (if it exists)
-try:
-    qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
-    print("Cleaned dataset loaded from file")
-except FileNotFoundError:
-# If the cleaned CSV file does not exist, then clean the dataset and save it to file
-    print("Cleaning dataset...")
-    qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-    qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
-    qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
-    qDataset['Title'] = qDataset['Cleaned Title']
-    qDataset['Body'] = qDataset['Cleaned Body']
-    qDataset.drop('Cleaned Title', axis=1, inplace=True)
-    qDataset.drop('Cleaned Body', axis=1, inplace=True)
-    qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
-    print("Cleaned dataset saved to file")
+# try:
+#     qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
+#     print("Cleaned dataset loaded from file")
+# except FileNotFoundError:
+# # If the cleaned CSV file does not exist, then clean the dataset and save it to file
+#     print("Cleaning dataset...")
+#     qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
+#     qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
+#     qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
+#     qDataset['Title'] = qDataset['Cleaned Title']
+#     qDataset['Body'] = qDataset['Cleaned Body']
+#     qDataset.drop('Cleaned Title', axis=1, inplace=True)
+#     qDataset.drop('Cleaned Body', axis=1, inplace=True)
+#     qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
+#     print("Cleaned dataset saved to file")
 
-TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
-groups = TagsQs.groupby('Tag')
+# TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+# groups = TagsQs.groupby('Tag')
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -152,7 +154,6 @@ app = dash.Dash(__name__, use_pages=True)
 app.layout = html.Div(
     [
         #Framework of the main app
-        html.Div("Millennium Management", style = {'fontSize':50, 'textAlign':'center'}),
         html.Div([
             dcc.Link(children=page['name']+"  |  ", href=page['path'])
             for page in dash.page_registry.values()
