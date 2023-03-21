@@ -1,10 +1,21 @@
 import dash
 from dash import html, dcc 
 import plotly.express as px
+from dash import html, dcc, dash_table, callback_context
+from apps import navigation, dataManipulator, dataReader
+import main
 
-dash.register_page(__name__)
+tagsDF = dataReader.questionsPerTag(main.tagDataset)
+QsPerMonthYear = dataReader.questionsPerMonthAndYear(main.tagDataset, main.aDataset)
+QsPerDay = dataReader.questionsPerDay(main.qDataset)
+sortedTopScoreOwners = dataReader.topOwnerIdTag(main.tagDataset, main.aDataset)
 
-layout = html.Div(children=[
+fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
+fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
+fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
+
+analytics_layout = html.Div(children=[
+    navigation.navbar,
     html.H1(children='Graph showing the top 20 most searched tags',
             style={
                 'textAlign': 'center',
@@ -73,3 +84,4 @@ layout = html.Div(children=[
         },
         ))
 ])
+

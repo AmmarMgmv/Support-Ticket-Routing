@@ -3,21 +3,15 @@ import pandas as pd
 import spacy
 from lxml.html import fromstring
 import re
-from dataReader import *
-from dataManipulator import *
-from dash import dash_table
+from apps import dataManipulator, dataReader
 import numpy as np
 from itertools import product
-import dash
-from dash import html
-from dash import dcc
-from dash import dash_table
+from dash import html, dcc, dash_table, callback_context
 import dash_table_experiments as dt
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
-from dash import callback_context
-from dash.dependencies import Input, Output, State
+import dash_bootstrap_components as dbc
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -27,9 +21,9 @@ from dash.dependencies import Input, Output, State
 
 # Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
-# tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-# qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
-# aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 # ## FOR DEBUG: temporarily reads the first 200 rows of csv files
 # tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 2, encoding = "ISO-8859-1")
@@ -149,47 +143,20 @@ from dash.dependencies import Input, Output, State
 # 
 # ------------------------------------------------------------------------------------------
 
-app = dash.Dash(__name__, use_pages=True)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR])
+server = app.server
 
-app.layout = html.Div(
-    [
-        #Framework of the main app
-        html.Div([
-            dcc.Link(children=page['name']+"  |  ", href=page['path'])
-            for page in dash.page_registry.values()
-        ]),
+sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
+sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
+df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
+df_tag.head(15)
 
-        html.Hr(),
-
-        #Content of each page
-        dash.page_container
-    ]
-)
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
-    
-# sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
-# sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
-# df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
-# df_tag.head(15)
-
-# TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
-# summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
-# topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
-# topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
-# sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
-# df=sortedTopScoreOwners
-
-# tagsDF = questionsPerTag(tagDataset)
-# QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
-# QsPerDay = questionsPerDay(qDataset)
-# sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
-
-# fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
-# fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
-# fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
-# app = dash.Dash()
+TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
+summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
+topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
+topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
+sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
+df=sortedTopScoreOwners
 
 # filters = html.Div(children=[
 #     html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),

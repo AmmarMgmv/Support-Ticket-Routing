@@ -2,12 +2,11 @@ import dash
 from dash import html, dcc 
 from dash import callback_context
 from dash.dependencies import Input, Output, State
+from apps import navigation
 
-# This will be the home page
-dash.register_page(__name__, path='/')
-
-layout = html.Div(
+home_layout = html.Div(children=
     [
+        navigation.navbar,
         html.Div(
             className="indexContainer",
             children=[
@@ -68,11 +67,6 @@ layout = html.Div(
                                                     className="indexInput",
                                                     placeholder='Type your question here'
                                                 ),
-                                                # html.Label(
-                                                #     id="textarea_label",
-                                                #     children='Type your question here',
-                                                #     htmlFor=""
-                                                # )
                                             ]
                                         ),
                                         html.Button(
