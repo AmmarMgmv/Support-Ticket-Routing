@@ -16,6 +16,7 @@ import dash_table_experiments as dt
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import plotly.express as px
+from collections import Counter
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -136,6 +137,43 @@ while True:
 #                            FIND OVERLAPPING WORDS & DETECT TAGS                               
 # 
 # ------------------------------------------------------------------------------------------
+
+# returns a DataFrame with the N most common words per tag
+def getNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+    grouped = DataFrame.groupby('Tag')
+    return grouped[Column].apply(lambda x: pd.Series(str(x).split()).value_counts().head(n))
+
+# returns a DataFrame with same data as getNCommonWords, but in a format easier to access
+# better to use for graphing / accessing
+def betterGetNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+    df = getNCommonWords(DataFrame, Column, n)
+    print(df)
+    indice = df.values
+    list = df.index.tolist()
+    indices = []
+    for i in indice:
+        indices.append(i)
+    wordFreq = {}
+    wordFreqList = []
+    for i in range(len(indices)):
+        if(i != 0 and i%n == 0):
+            wordFreqList.append(wordFreq)
+            wordFreq = {}
+        wordFreq[list[i][1]] = indices[i]
+    wordFreqList.append(wordFreq)
+    words = []
+    for i in range(0, len(list), n):
+        words.append(list[i][0])
+    dff = pd.DataFrame()
+    dff['Tags'] = words
+    dff["'Word : Occurrences' list"] = wordFreqList
+    print(dff)
+    return dff
+
+def commonWordsPerTag():
+    grouper = qDataset.merge(tagDataset, left_on="Id", right_on="Id", how="inner")
+    return betterGetNCommonWords(grouper, 'Title', 10) #set to 10 by default, use function separately to change number of words
+
 
 # tag_common, all_common_words = commonWords(groups)
 # overlap_words = overlappedCommonWords(tag_common, all_common_words)
