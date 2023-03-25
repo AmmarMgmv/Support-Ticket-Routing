@@ -12,7 +12,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
 import dash_bootstrap_components as dbc
-
+from  previous_similar_answers import get_body
 # ------------------------------------------------------------------------------------------
 # 
 #                               LOAD IN THE DATASETS                               
@@ -223,3 +223,175 @@ df=sortedTopScoreOwners
 
 # if __name__ == '__main__':
 #     app.run_server(debug=True)
+
+app = Dash(__name__)
+app.config.suppress_callback_exceptions = True
+app.title="Medal_dashboard"
+previous_list={}
+
+styles = {
+'nav-link': {
+    'textDecoration': 'none',
+    'color': 'white',
+    'padding': '5px'
+    },
+    'nav-link:hover': {
+    'textDecoration': 'underline',
+    'cursor': 'pointer'
+    }
+}
+    
+home_layout = html.Div([
+    html.Nav([
+         html.Ul([
+            html.Li(html.A('Home', href='/', style=styles['nav-link'])),
+            html.Li(html.A('Search', href='/search', style=styles['nav-link'])),
+            html.Li(html.A('Admin', href='/admin', style=styles['nav-link'])),
+            html.Li(html.A('Analytics',href='/analysis',style=styles['nav-link'])),
+            html.Li("Millennium management",style={'color':'white'})
+        ], style={'display': 'flex', 'list-style': 'none', 'margin': 0, 'padding': 0,'gap': '40px'})
+    ], style={'background-color': 'rgb(51,105,192)', 'padding': '10px','border-radius':'10px'}),
+
+    html.Div([
+        html.Div("Welcome to Millennium management", style={'color': 'white', 'text-align': 'center', 'padding-top': '40px','font-size':'30px'}),
+        html.Div("Have a question?",style={'color':'white','text-align': 'center','padding-top': '40px','font-size':'30px'}),
+        html.Div("Ask down below",style={'color':'white','text-align': 'center','padding-top': '40px','font-size':'30px'}),
+    ],style={'background-color': 'rgb(173, 216, 230)', 'height': '350px', 'width': '100%','border-radius':'10px'}),
+    
+    html.Div([
+        dcc.Input(
+            id='search-input',
+            type='text',
+            placeholder='Ask a question',
+            style={'width':'60%','border-radius':'10px','height':'50px','border':'1px solid white','margin-left':'10%','margin-top':'20px','background-color':'#f2f2f2','font-size':'25px'}
+        ),
+
+        html.Button('Search', id='search-button',style={'font-size':'25px','margin-left':'50px','border-radius':'10px','border':'1px solid white'}),
+    ],style={'background-color':'rgb(59, 140, 225)','width':'90%','height':'350px','margin-left':'80px','margin-top':'30px','border-radius':'10px'}),
+        
+
+    html.Div(id='search-output')
+])
+    
+
+
+
+
+admin_layout=html.Div([
+
+
+])
+analysis_layout=html.Div([
+    html.Nav([
+         html.Ul([
+            html.Li(html.A('Home', href='/', style=styles['nav-link'])),
+            html.Li(html.A('Search', href='/search', style=styles['nav-link'])),
+            html.Li(html.A('Admin', href='/admin', style=styles['nav-link'])),
+            html.Li(html.A('Analytics',href='/analysis',style=styles['nav-link'])),
+            html.Li("Millennium management",style={'color':'white'})
+        ], style={'display': 'flex', 'list-style': 'none', 'margin': 0, 'padding': 0,'gap': '40px'})
+    ], style={'background-color': 'rgb(51,105,192)', 'padding': '10px'}),
+
+    html.Div(
+    'Analytics',style={"background-color":'rgb(173, 216, 230)','padding':'0px','width':'100%','height':'100px','font-size':'30px','text-align':'center'}
+    ),
+           
+])
+search_layout=html.Div([
+    html.Nav([
+         html.Ul([
+            html.Li(html.A('Home', href='/', style=styles['nav-link'])),
+            html.Li(html.A('Search', href='/search', style=styles['nav-link'])),
+            html.Li(html.A('Admin', href='/admin', style=styles['nav-link'])),
+            html.Li(html.A('Analytics',href='/analysis',style=styles['nav-link'])),
+            html.Li("Millennium management",style={'color':'white'})
+        ], style={'display': 'flex', 'list-style': 'none', 'margin': 0, 'padding': 0,'gap': '40px'})
+    ], style={'background-color': 'rgb(51,105,192)', 'padding': '10px','border-radius':'10px'}),
+
+    html.Div([
+        html.Div("Search through previously asked questions", style={'color': 'white', 'text-align': 'center', 'padding-top': '40px','font-size':'30px'}),
+        
+        html.Div([
+        dcc.Input(
+            id='search-previous',
+            type='text',
+            placeholder='Search......',
+            style={'width':'60%','border-radius':'10px','height':'50px','border':'1px solid white','margin-left':'10%','margin-top':'20px','background-color':'#f2f2f2','font-size':'25px'}
+        ),
+        html.Button('Search', id='previous-button',style={'font-size':'25px','margin-left':'50px','border-radius':'10px','border':'1px solid white'}),
+    ]),
+      
+
+       html.Div([
+       "Answers for previous similar questions",
+
+       dash_table.DataTable(
+    id='datatable',
+    columns=[
+        {'name': 'Answers to previous', 'id': 'Values', 'type': 'text', 'presentation': 'markdown'}
+    ],
+    style_table={
+        'height': '500px',
+        'overflowY': 'scroll',
+        'border': 'thin lightgrey solid'
+    },
+    style_header={
+        'backgroundColor': 'white',
+        'fontWeight': 'bold',
+        'border': 'thin lightgrey solid'
+    },
+    style_cell={
+        'minWidth': '0px',
+        'maxWidth': '250px',
+        'whiteSpace': 'normal',
+        'fontSize': '15px',
+        'height': 'auto',
+        'textAlign': 'left',
+        'border': 'thin lightgrey solid'
+    },
+    page_size=30,
+    page_action='none',
+    sort_action='none',
+    filter_action='none'
+),
+
+       html.Div(id='previous_output')
+       ],style={'background-color':'white','width':'90%','border-radius':'10px','height':'50%','margin-left':'5%','margin-top':'5%'},
+
+       ),
+
+        ],style={'background-color': 'rgb(173, 216, 230)', 'height': '1000px', 'width': '100%','border-radius':'10px','font-size':'30px','text-align': 'center'}),
+])
+
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])
+
+
+@app.callback(Output('page-content', 'children'),Input('url', 'pathname'))
+def display_page(pathname):
+    if pathname == '/search':
+        return search_layout
+    elif pathname == '/admin':
+        return admin_layout
+    elif pathname =='/analysis':
+        return analysis_layout
+    else:
+        return home_layout
+
+@app.callback(Output('datatable', 'data'),
+              [Input('previous-button', 'n_clicks')],
+              [State('search-previous', 'value')])
+def previous_search(n_clicks,value):
+    if n_clicks is not None:
+     previous_list=get_body(value)
+     data = [{'Values': val} for val in previous_list]
+     return data
+    else:
+        return []
+
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
