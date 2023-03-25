@@ -11,6 +11,8 @@ pandas = "*"
 lxml = "*"
 scikit-learn = "*"
 counter = "*"
+pathlib = "*"
+faker = "*"
 
 [dev-packages]
 
