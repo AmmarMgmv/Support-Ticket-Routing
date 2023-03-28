@@ -1,0 +1,34 @@
+import pandas as pd
+
+df=pd.read_csv("/Users/zouweijian/Desktop/dataset/dataset/Tags.csv")
+df=df.fillna('')
+id_column=df.iloc[:, 0].tolist()
+tag_column=df.iloc[:,1].tolist()
+
+def search_tags(input_tag):
+ 
+ if input_tag is not None :
+    unique_tags=[]
+    for i in tag_column:
+     if(input_tag in i):
+       if i not in unique_tags:
+           unique_tags.append(i)
+     if len(unique_tags)==10:
+           break 
+    return unique_tags
+ else:
+    return {}
+
+def search_id(input_tag):
+ id_list=[]
+ if input_tag is not None: 
+   filtered_df = df[df['Tag'] == input_tag]
+   id_list = filtered_df['id'].tolist()
+   return id_list
+ else:
+    return {}
+   
+         
+
+   
+
