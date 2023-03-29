@@ -7,7 +7,7 @@ from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 
 #still contains: 'lemmatizer', 'tagger', 'attribute_ruler'
-nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec', 'ner']) 
+nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec']) 
 print(nlp.pipe_names)
 
 
@@ -127,6 +127,28 @@ def overlappedCommonWords(tag_common : dict, all_common: []) -> dict:
                 overlap_words[tag_common[key][num]] = tag
     return overlap_words
 
+# add common words to nemd entity recognizer (NER)
+def add_common_entity(all_common_words : tuple):
+    # create a list of dictionary for entity recognizer
+    common_entity = []
+    for i in range(len(all_common_words)):
+        common = {'label' : 'commonWord', 'pattern': [{"LOWER": all_common_words[i]}]}
+        common_entity.append(common)
+    # add the list to the entity recognizer
+    ruler = nlp.add_pipe('entity_ruler', before='ner')
+    ruler.add_patterns(common_entity)
+
+# add overlapped common words to named entity recognizer (NER)
+def add_overlap_entity(overlap_words : dict):
+    # create a list of dictionary for entity recognizer
+    overlap_entity = []
+    keys_list = list(overlap_words.keys())
+    for keys in keys_list:
+        overlap = {'label' : 'overlappedCommonWord', 'pattern': [{"LOWER": keys}]}
+        overlap_entity.append(overlap)
+    # add the list to the entity recognizer
+    ruler = nlp.add_pipe('entity_ruler', before='ner')
+    ruler.add_patterns(overlap_entity)
 
 # Detect tags for each question
 def detectTags(df: pd.DataFrame, overlap: dict):
@@ -185,6 +207,8 @@ groups = TagsQs.groupby('Tag')
 tag_common, all_common_words = commonWords(groups)
 overlap_words = overlappedCommonWords(tag_common, all_common_words)
 detectTags(qDataset, overlap_words)
+
+add_common_entity(all_common_words)
 
 
 # ## Create a new dataframe with common words connected to each tag
