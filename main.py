@@ -158,78 +158,13 @@ topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
 sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
 df=sortedTopScoreOwners
 
-# filters = html.Div(children=[
-#     html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
-#     dcc.Graph(
-#         id='tag-graph',
-#         figure=fig
-#     ),
-#     html.H1(children='Table showing tags and frequency',style={'textAlign': 'center','font-family':'Arial'}),
-#     html.Div(dash_table.DataTable(
-#         tagsDF.to_dict('records'),
-#         columns=[
-#             {'name': 'Tag', 'id': 'Tag'},
-#             {'name': 'Frequency', 'id': 'Occurrences'},
-#         ],
-#         filter_action='native',
-#         page_size=20,
-#         fixed_rows={'headers': True},
-#         style_header={
-#             'backgroundColor': 'rgb(30, 30, 30)',
-#             'color': 'white',
-#         },
-#         style_data={
-#             'overflow': 'hidden',
-#             'textOverflow': 'ellipsis',
-#         },
-#     )),
-#     html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
-#     dcc.Graph(
-#         id='MY-graph',
-#         figure=fig2
-#     ),
-#     html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
-#     dcc.Graph(
-#         id='questions-graph',
-#         figure=fig3
-#     ),
-#     html.H1(children='Table showing top ID for each tag',
-#             style={
-#                 'textAlign': 'center',
-#                 'font-family' : 'Arial'
-#             }),
-#     html.Div(dash_table.DataTable(
-#         sortedTopScoreOwners.to_dict('records'),
-#         columns=[
-#             {'name': 'Issue', 'id': 'Tag'},
-#             {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
-#             {'name': 'Score', 'id': 'Score'},
-#         ],
-#         filter_action='native',
-#         page_size=20,
-#         fixed_rows={'headers': True},
-#         style_header={
-#                 'backgroundColor': 'rgb(30, 30, 30)',
-#                 'color': 'white',
-#             },
-#         style_data={
-#             'overflow': 'hidden',
-#             'textOverflow': 'ellipsis',
-#         },
-#         ))
-# ])
-
-# app.layout = html.Div(children=[filters])
-
-# if __name__ == '__main__':
-#     app.run_server(debug=True)
 # from dash import Dash,html,dcc 
 # from dash.dependencies import Input, Output, State
 # from  previous_similar_answers import get_body
 # from dash import dash_table
 # from id_search import search_id,search_tags
-
-
+# from find_datails import find_id
+# import pandas as pd
 
 # tags={}
 # app = Dash(__name__)
@@ -440,7 +375,11 @@ df=sortedTopScoreOwners
 #    dash_table.DataTable(
 #     id='idtable',
 #     columns=[
-#         {'name': 'ID of who can answer the quesitons', 'id': 'Values', 'type': 'text', 'presentation': 'markdown'}
+#         {'name': 'Id', 'id': 'Id', 'type': 'text', 'presentation': 'markdown'},
+#          {'name': 'Name', 'id': 'Name', 'type': 'text', 'presentation': 'markdown'},
+#         {'name': 'E-mail', 'id': 'E-mail', 'type': 'text', 'presentation': 'markdown'},
+#         {'name': 'Location', 'id': 'Location', 'type': 'text', 'presentation': 'markdown'},
+#         {'name': 'Status', 'id': 'Status', 'type': 'text', 'presentation': 'markdown'}
 #     ],
 #     style_table={
 #         'height': '500px',
@@ -506,8 +445,15 @@ df=sortedTopScoreOwners
 # def updateid(value):
 #    if value is not None:
 #       ids=search_id(value)
-#       data=[{'Values': val} for val in ids]
+#       data=[]
+#       for id in ids:
+#          result=find_id(id)
+#          if result != {}:
+#           data.append(result)
+#           print(data)
+     
 #       return data
+   
 #    else:
 #       return []
 
