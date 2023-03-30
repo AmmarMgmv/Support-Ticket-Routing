@@ -86,7 +86,13 @@ columns_to_read_answers = ['Body', 'ParentId']
 ansDataset = pd.read_csv("Dataset\Answers.csv",encoding = "ISO-8859-1",usecols=columns_to_read_answers)
 ansDataset = ansDataset.rename(columns={'Body': 'Answer_Body'})
 
+columns_to_read_ids = ['Ids', 'FirstName', 'LastName']
+engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859-1", usecols=columns_to_read_ids)
+
 merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
+final_df = pd.merge(merged_df, engineerDataset, left_on='Id', right_on='Ids')
+
+
 
 #print("success")
 
@@ -101,8 +107,9 @@ import os
 
 my_analyzer = RegexTokenizer() | LowercaseFilter()
 
+
 # Define the schema for the index
-schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer))
+schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer),Ids=TEXT(stored=True, analyzer=my_analyzer),FirstName=TEXT(stored=True, analyzer=my_analyzer),LastName=TEXT(stored=True, analyzer=my_analyzer))
 
 # Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
@@ -112,10 +119,13 @@ if not os.path.exists("index_dir"):
 ix = index.create_in("index_dir", schema)
 writer= ix.writer()
 
-for i, row in merged_df.iterrows():
+for i, row in final_df.iterrows():
     Body = remove_html_tags (row ["Body"])
     Answer_Body = remove_html_tags(row["Answer_Body"])
-    writer.add_document(Body=Body,Answer_Body=Answer_Body)
+    Ids = str(row['Ids'])
+    FirstName = row['FirstName']
+    LastName = row['LastName']
+    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName)
     if i == 10000:
         break
 writer.commit()
@@ -135,15 +145,34 @@ def index_search(dirname, search_fields, search_query):
     with ix.searcher() as searcher:
         results = searcher.search(q, limit=None)
         
-        # Build a list of search results
+         # Build a list of search results
         results_list = []
         for hit in results:
             result_dict = {}
             result_dict["QuestionBody"] = hit.fields()["Body"]
             result_dict["AnswerBody"] = hit.fields()["Answer_Body"]
+            result_dict["Ids"] = hit.fields()["Ids"]
+            result_dict["FirstName"] = hit.fields()["FirstName"]
+            result_dict["LastName"] = hit.fields()["LastName"]
             results_list.append(result_dict)
             
         return results_list
+    
+#Prompt the user for search queries
+# while True:
+#     query = input("Enter your query (or 0 to exit): ")
+#     if query == "0":
+#         break
+#     else:
+#         results = index_search("index_dir", ["Body"], query)
+#         print("Search results:")
+#         for i, result in enumerate(results, start=1):
+#             print(f"{i}. Question: {result['QuestionBody']}")
+#             print(f"     Answer: {result['AnswerBody']}")
+#             print(f"     Id: {result['Ids']}")
+#             print(f"     Name: {result['FirstName']} {result['LastName']}")
+#             print("")
+
 
 
 #Prompt the user for search queries
