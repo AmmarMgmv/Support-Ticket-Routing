@@ -1,14 +1,14 @@
 import pandas as pd
-from dataReader import *
 import spacy
 from typing import List
+from apps import dataReader
 from collections import Counter
 from lxml.html import fromstring
 from sklearn.feature_extraction.text import CountVectorizer
 
 #still contains: 'lemmatizer', 'tagger', 'attribute_ruler'
 nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec', 'ner']) 
-print(nlp.pipe_names)
+# print(nlp.pipe_names)
 
 #   remove html tags in the body of questions
 def remove_tags(text):

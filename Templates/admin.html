@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="HTML, CSS, JavaScript">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Search</title>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-sm justify-content-center gradient-bg" style="background-color: #054b80;">
+    <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/">Home</a>
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/search">Search</a>
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/admin" data-turbolinks-track="reload">Admin</a>
+    </ul>
+    <span class="ml-auto text-light">Millennium Management</span>
+  </nav>
+  
+  <div class="container-fluid">
+    <div id="table1-container"></div>
+    <div id="table2-container"></div>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+</body>
+</html>

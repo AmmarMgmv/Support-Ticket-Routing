@@ -3,20 +3,16 @@ import pandas as pd
 import spacy
 from lxml.html import fromstring
 import re
-from dataReader import *
-from dataManipulator import *
-from dash import dash_table
+from apps import dataManipulator, dataReader
 import numpy as np
 from itertools import product
-import dash
-from dash import html
-from dash import dcc
-from dash import dash_table
+from dash import html, dcc, dash_table, callback_context
 import dash_table_experiments as dt
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
 from collections import Counter
+import dash_bootstrap_components as dbc
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -42,24 +38,24 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 # ------------------------------------------------------------------------------------------
 
 # Load the cleaned CSV file (if it exists)
-try:
-    qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
-    print("Cleaned dataset loaded from file")
-except FileNotFoundError:
-# If the cleaned CSV file does not exist, then clean the dataset and save it to file
-    print("Cleaning dataset...")
-    qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-    qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
-    qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
-    qDataset['Title'] = qDataset['Cleaned Title']
-    qDataset['Body'] = qDataset['Cleaned Body']
-    qDataset.drop('Cleaned Title', axis=1, inplace=True)
-    qDataset.drop('Cleaned Body', axis=1, inplace=True)
-    qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
-    print("Cleaned dataset saved to file")
+# try:
+#     qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
+#     print("Cleaned dataset loaded from file")
+# except FileNotFoundError:
+# # If the cleaned CSV file does not exist, then clean the dataset and save it to file
+#     print("Cleaning dataset...")
+#     qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
+#     qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
+#     qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
+#     qDataset['Title'] = qDataset['Cleaned Title']
+#     qDataset['Body'] = qDataset['Cleaned Body']
+#     qDataset.drop('Cleaned Title', axis=1, inplace=True)
+#     qDataset.drop('Cleaned Body', axis=1, inplace=True)
+#     qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
+#     print("Cleaned dataset saved to file")
 
-TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
-groups = TagsQs.groupby('Tag')
+# TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+# groups = TagsQs.groupby('Tag')
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -137,10 +133,10 @@ def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
     schema = ix.schema
     
-    og = qparser.OrGroup.factory(0.8)
-    mp = qparser.MultifieldParser(search_fields, schema, group=og)
-    mp.add_plugin(FuzzyTermPlugin())
-    q = mp.parse(search_query + "~")
+#     og = qparser.OrGroup.factory(0.8)
+#     mp = qparser.MultifieldParser(search_fields, schema, group=og)
+#     mp.add_plugin(FuzzyTermPlugin())
+#     q = mp.parse(search_query + "~")
     
     with ix.searcher() as searcher:
         results = searcher.search(q, limit=None)
@@ -173,20 +169,6 @@ def index_search(dirname, search_fields, search_query):
 #             print(f"     Name: {result['FirstName']} {result['LastName']}")
 #             print("")
 
-
-
-#Prompt the user for search queries
-# while True:
-#     query = input("Enter your query (or 0 to exit): ")
-#     if query == "0":
-#         break
-#     else:
-#         results = index_search("index_dir", ["Body"], query)
-#         print("Search results:")
-#         for i, result in enumerate(results, start=1):
-#             print(f"{i}. Question: {result['QuestionBody']}")
-#             print(f"   Answer: {result['AnswerBody']}")
-#             print("")
 # ------------------------------------------------------------------------------------------
 # 
 #                            FIND OVERLAPPING WORDS & DETECT TAGS                               
@@ -240,6 +222,9 @@ def commonWordsPerTag():
 # 
 # ------------------------------------------------------------------------------------------
 
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR])
+server = app.server
+
 sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
 sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
 df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
@@ -252,78 +237,3 @@ topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
 sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
 df=sortedTopScoreOwners
 
-tagsDF = questionsPerTag(tagDataset)
-QsPerMonthYear = questionsPerMonthAndYear(tagDataset, aDataset)
-QsPerDay = questionsPerDay(qDataset)
-sortedTopScoreOwners = topOwnerIdTag(tagDataset, aDataset)
-
-fig = px.bar(tagsDF.head(20), x='Tag', y='Occurrences', barmode="group")                 # barchart showing most searched tags
-fig2 = px.scatter(QsPerMonthYear, x='Date', y='Count')                                   # scatter graph showing year-month and no. of questions
-fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                          # barchart showing date and no. of questions
-app = dash.Dash()
-
-filters = html.Div(children=[
-    html.H1(children='Graph showing the top 20 most searched tags',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='tag-graph',
-        figure=fig
-    ),
-    html.H1(children='Table showing tags and frequency',style={'textAlign': 'center','font-family':'Arial'}),
-    html.Div(dash_table.DataTable(
-        tagsDF.to_dict('records'),
-        columns=[
-            {'name': 'Tag', 'id': 'Tag'},
-            {'name': 'Frequency', 'id': 'Occurrences'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-            'backgroundColor': 'rgb(30, 30, 30)',
-            'color': 'white',
-        },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-    )),
-    html.H1(children='Graph showing questions asked by month and year',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='MY-graph',
-        figure=fig2
-    ),
-    html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
-    dcc.Graph(
-        id='questions-graph',
-        figure=fig3
-    ),
-    html.H1(children='Table showing top ID for each tag',
-            style={
-                'textAlign': 'center',
-                'font-family' : 'Arial'
-            }),
-    html.Div(dash_table.DataTable(
-        sortedTopScoreOwners.to_dict('records'),
-        columns=[
-            {'name': 'Issue', 'id': 'Tag'},
-            {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
-            {'name': 'Score', 'id': 'Score'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-            },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-        ))
-])
-
-app.layout = html.Div(children=[filters])
-
-if __name__ == '__main__':
-    app.run_server(debug=True)

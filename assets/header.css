@@ -158,6 +158,12 @@ textarea.indexInput{
 
 .hidden {
     display: none;
+}
+
+.indexInput::placeholder {
+    color: #a9a9a9;
+    font-family: inherit;
+    font-size: inherit;
   }
 
 .formBtn {
