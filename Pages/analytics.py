@@ -48,13 +48,16 @@ analytics_layout = html.Div(children=[
     )),
     html.H1(children='Graph showing tags searched by month and year',
             style={
-                    'textAlign': 'center',
-                   'font-family':'Arial'}),
+                'textAlign': 'center',
+                'font-family':'Arial'}),
     dcc.Graph(
         id='MY-graph',
         figure=fig2
     ),
-    html.H1(children='Graph showing the number of questions per day',style={'textAlign': 'center','font-family':'Arial'}),
+    html.H1(children='Graph showing the number of questions per day',
+            style={
+                'textAlign': 'center',
+                'font-family':'Arial'}),
     dcc.Graph(
         id='questions-graph',
         figure=fig3
@@ -84,4 +87,3 @@ analytics_layout = html.Div(children=[
         },
         ))
 ])
-

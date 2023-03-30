@@ -1,18 +1,13 @@
 import dash
 import pandas as pd
-import spacy
-from lxml.html import fromstring
 import re
-from apps import dataManipulator, dataReader
-import numpy as np
-from itertools import product
-from dash import html, dcc, dash_table, callback_context
-import dash_table_experiments as dt
-from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import plotly.express as px
-from collections import Counter
+import os
 import dash_bootstrap_components as dbc
+from whoosh import index, qparser
+from whoosh.fields import Schema, TEXT
+from whoosh.qparser import FuzzyTermPlugin
+from whoosh.analysis import RegexTokenizer, LowercaseFilter
+from apps import dataManipulator, dataReader
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -22,14 +17,14 @@ import dash_bootstrap_components as dbc
 
 # Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
-tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
-aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+# tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
+# qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+# aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
 # ## FOR DEBUG: temporarily reads the first 200 rows of csv files
-# tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 2, encoding = "ISO-8859-1")
-# qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 5, encoding = "ISO-8859-1")
-# aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 5, encoding = "ISO-8859-1")
+tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 1000, encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 1000, encoding = "ISO-8859-1")
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -54,20 +49,14 @@ aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 #     qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
 #     print("Cleaned dataset saved to file")
 
-# TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
-# groups = TagsQs.groupby('Tag')
+TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+groups = TagsQs.groupby('Tag')
 
 # ------------------------------------------------------------------------------------------
 # 
 #                                  FUZZY SEARCH ALGORITHM                               
 # 
 # ------------------------------------------------------------------------------------------
-
-# import the package to work on the datasets
-import pandas as pd
-import spacy
-from lxml.html import fromstring
-import re
 
 def remove_html_tags(text):
     clean = re.compile('<.*?>')
@@ -88,21 +77,8 @@ engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859
 merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
 final_df = pd.merge(merged_df, engineerDataset, left_on='Id', right_on='Ids')
 
-
-
-#print("success")
-
 # fuzzy search on question data set
-
-from whoosh.fields import Schema, TEXT, ID
-from whoosh import index, qparser
-from whoosh.analysis import RegexTokenizer, LowercaseFilter
-from whoosh.writing import BufferedWriter
-from whoosh.qparser import FuzzyTermPlugin
-import os
-
 my_analyzer = RegexTokenizer() | LowercaseFilter()
-
 
 # Define the schema for the index
 schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer),Ids=TEXT(stored=True, analyzer=my_analyzer),FirstName=TEXT(stored=True, analyzer=my_analyzer),LastName=TEXT(stored=True, analyzer=my_analyzer))
@@ -133,10 +109,10 @@ def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
     schema = ix.schema
     
-#     og = qparser.OrGroup.factory(0.8)
-#     mp = qparser.MultifieldParser(search_fields, schema, group=og)
-#     mp.add_plugin(FuzzyTermPlugin())
-#     q = mp.parse(search_query + "~")
+    og = qparser.OrGroup.factory(0.8)
+    mp = qparser.MultifieldParser(search_fields, schema, group=og)
+    mp.add_plugin(FuzzyTermPlugin())
+    q = mp.parse(search_query + "~")
     
     with ix.searcher() as searcher:
         results = searcher.search(q, limit=None)
@@ -176,44 +152,44 @@ def index_search(dirname, search_fields, search_query):
 # ------------------------------------------------------------------------------------------
 
 # returns a DataFrame with the N most common words per tag
-def getNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
-    grouped = DataFrame.groupby('Tag')
-    return grouped[Column].apply(lambda x: pd.Series(str(x).split()).value_counts().head(n))
+# def getNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+#     grouped = DataFrame.groupby('Tag')
+#     return grouped[Column].apply(lambda x: pd.Series(str(x).split()).value_counts().head(n))
 
 # returns a DataFrame with same data as getNCommonWords, but in a format easier to access
 # better to use for graphing / accessing
-def betterGetNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
-    df = getNCommonWords(DataFrame, Column, n)
-    print(df)
-    indice = df.values
-    list = df.index.tolist()
-    indices = []
-    for i in indice:
-        indices.append(i)
-    wordFreq = {}
-    wordFreqList = []
-    for i in range(len(indices)):
-        if(i != 0 and i%n == 0):
-            wordFreqList.append(wordFreq)
-            wordFreq = {}
-        wordFreq[list[i][1]] = indices[i]
-    wordFreqList.append(wordFreq)
-    words = []
-    for i in range(0, len(list), n):
-        words.append(list[i][0])
-    dff = pd.DataFrame()
-    dff['Tags'] = words
-    dff["'Word : Occurrences' list"] = wordFreqList
-    print(dff)
-    return dff
+# def betterGetNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+#     df = getNCommonWords(DataFrame, Column, n)
+#     print(df)
+#     indice = df.values
+#     list = df.index.tolist()
+#     indices = []
+#     for i in indice:
+#         indices.append(i)
+#     wordFreq = {}
+#     wordFreqList = []
+#     for i in range(len(indices)):
+#         if(i != 0 and i%n == 0):
+#             wordFreqList.append(wordFreq)
+#             wordFreq = {}
+#         wordFreq[list[i][1]] = indices[i]
+#     wordFreqList.append(wordFreq)
+#     words = []
+#     for i in range(0, len(list), n):
+#         words.append(list[i][0])
+#     dff = pd.DataFrame()
+#     dff['Tags'] = words
+#     dff["'Word : Occurrences' list"] = wordFreqList
+#     print(dff)
+#     return dff
 
-def commonWordsPerTag():
-    grouper = qDataset.merge(tagDataset, left_on="Id", right_on="Id", how="inner")
-    return betterGetNCommonWords(grouper, 'Title', 10) #set to 10 by default, use function separately to change number of words
+# def commonWordsPerTag():
+#     grouper = qDataset.merge(tagDataset, left_on="Id", right_on="Id", how="inner")
+#     return betterGetNCommonWords(grouper, 'Title', 10) #set to 10 by default, use function separately to change number of words
 
 
-# tag_common, all_common_words = commonWords(groups)
-# overlap_words = overlappedCommonWords(tag_common, all_common_words)
+tag_common, all_common_words = dataManipulator.commonWords(groups)
+overlap_words = dataManipulator.overlappedCommonWords(tag_common, all_common_words)
 # detectTags(qDataset, overlap_words)
 
 # ------------------------------------------------------------------------------------------
@@ -224,16 +200,3 @@ def commonWordsPerTag():
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR])
 server = app.server
-
-sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" 
-sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
-df_tag = pd.DataFrame({'Tag': sortByTop.index, 'Occurrences': sortByTop.values})
-df_tag.head(15)
-
-TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
-summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
-topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
-topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
-sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
-df=sortedTopScoreOwners
-

@@ -54,3 +54,45 @@ search_layout = html.Div(children=
         ), 
     ],
 )
+    
+@app.callback(
+    Output(component_id='presults', component_property='children'),
+    [Input(component_id='mybutton', component_property='n_clicks')],
+    [State(component_id='userInput', component_property='value')],
+    prevent_initial_call=False
+)
+def get_results(n, input_question):
+    printresults = []
+    lastQuestion = ""
+    qCounter = 0
+    aCounter = 0
+    userId = "Ryan Gallagher (ID: 778923)"
+    if input_question != "":
+        results = index_search("index_dir", ["Body"], input_question)
+        for result in results:
+            printable_q = result['QuestionBody']
+            printable_a = result['AnswerBody']
+            if (lastQuestion != result['QuestionBody']):
+                aCounter = 0
+                qCounter += 1
+                if aCounter < 5:
+                    printresults.append(html.Div(
+                    [
+                        html.Div(printable_q, className="searchQuestion"),
+                        html.Div([
+                            html.Div(userId, className="usersID"), html.Div(printable_a, className="usersAnswer")], className="searchAnswer")
+                    ],
+                    className="eachResult"
+                    ))
+                    aCounter += 1
+            else:
+                if aCounter < 5:
+                    printresults[-1].children.append(html.Div(
+                        [html.Div(userId, className="usersID" ), html.Div(printable_a, className="usersAnswer")], className="searchAnswer"))
+                    aCounter += 1
+            lastQuestion = result['QuestionBody']
+            if qCounter == 5:
+                break
+        return printresults  
+    else:
+        return []

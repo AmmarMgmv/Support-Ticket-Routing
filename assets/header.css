@@ -105,7 +105,7 @@ img{
     left: -20px;
 }
 
-form {
+.formDiv {
     padding: 2.3rem 2.2rem;
     z-index: 10;
     overflow: hidden;
@@ -327,4 +327,32 @@ textarea.indexInput{
 
 .searchForm::-webkit-scrollbar {
     display: none;
+}
+
+.eachResult{
+    background-color: #236ea79c;
+    border-radius: 15px;
+    margin-top: 1rem;
+}
+
+.searchQuestion{
+    padding: 1rem;
+    font-size: 1.2rem;
+}
+
+.searchAnswer{
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    padding: 1rem;
+}
+
+.printedTags, .printedEngineers{
+    margin: 2rem;
+    font-size: 20px;
+    text-align: left;
+}
+
+.eachTag, .eachEngineer{
+    padding-top: .4rem;
+    padding-bottom: .4rem;
 }

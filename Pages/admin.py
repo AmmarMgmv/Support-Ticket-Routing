@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc 
+from dash import html, dcc, dash_table 
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 from apps import navigation

@@ -3,6 +3,9 @@ from dash import html, dcc
 from dash import callback_context
 from dash.dependencies import Input, Output, State
 from apps import navigation
+from main import app
+import main
+from apps import dataManipulator
 
 home_layout = html.Div(children=
     [
@@ -52,8 +55,9 @@ home_layout = html.Div(children=
                             children=[
                                 html.Span(className="circle one"),
                                 html.Span(className="circle two"),
-                                html.Form(
-                                    action="index.html",
+                                html.Div(
+                                    # action="index.html",
+                                    className="formDiv",
                                     children=[
                                         html.H3(
                                             'Need Help?',
@@ -72,7 +76,9 @@ home_layout = html.Div(children=
                                         html.Button(
                                             'Search',
                                             className="formBtn",
-                                            type="submit"
+                                            type="submit",
+                                            id="searchButton",
+                                            n_clicks=0
                                         ),
                                         html.Div(
                                             className="resultContainer",
@@ -83,13 +89,21 @@ home_layout = html.Div(children=
                                                         html.Div(
                                                             className="detectedTags",
                                                             children=[
-                                                                html.H4('Detected Tags')
+                                                                html.H4('Detected Tags'),
+                                                                html.Div(
+                                                                    id="dTags",
+                                                                    className="printedTags"
+                                                                )
                                                             ]
                                                         ),
                                                         html.Div(
                                                             className="recommendUsers",
                                                             children=[
-                                                                html.H4('Recommended Engineers')
+                                                                html.H4('Recommended Engineers'),
+                                                                html.Div(
+                                                                    id="engineers",
+                                                                    className="printedEngineers"
+                                                                )
                                                             ]
                                                         ),
                                                     ]
@@ -106,3 +120,41 @@ home_layout = html.Div(children=
         ), 
     ],
 )
+
+@app.callback(
+    # Output(component_id='dTags', component_property='children'),
+     Output(component_id='engineers', component_property='children'),
+    [Input(component_id='searchButton', component_property='n_clicks')],
+    [State(component_id='question_textarea', component_property='value')],
+    prevent_initial_call=False
+)
+def updateInfo(n,input):
+    # tag=['html', 'css', 'javascript', 'react', 'angular']
+    engineer=['Ryan Gallagher (ID: 778923)', 'Adam Blake (ID: 345732)', 'Chris Johnson (ID: 143675)', 'Abigail Mary (ID: 234247)', 'Terry Crews (ID: 893487)']
+    # tag_div = html.Div([])
+    engineer_div = html.Div([])
+    
+    if n > 0 and input != "":
+        engineer_div = html.Div([
+            *[html.Div(e, className="eachEngineer") for e in engineer]
+        ])
+        
+        # Create a div for tags
+        # tag_div = html.Div([
+        #     *[html.Div(t, className="eachTag") for t in tag]
+        # ])
+    return engineer_div
+
+@app.callback(
+    Output(component_id='dTags', component_property='children'),
+    [Input(component_id='question_textarea', component_property='value')],
+    prevent_initial_call=True
+)
+def updateInfo(input):
+
+    tag = dataManipulator.detectTagsFromInput(main.overlap_words, input)
+    # Create a div for tags
+    tag_div = html.Div([
+        *[html.Div(t, className="eachTag") for t in tag]
+    ])
+    return tag_div
