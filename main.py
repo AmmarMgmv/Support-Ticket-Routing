@@ -21,7 +21,7 @@ import dash
 from dash import html
 from dash import dcc
 from dash import dash_table
-import dash_table_experiments as dt
+# import dash_table_experiments as dt
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 
@@ -29,7 +29,7 @@ tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
 
-# ## FOR DEBUG: temporarily reads the first 200 rows of csv files
+## FOR DEBUG: temporarily reads the first 200 rows of csv files
 # tagDataset = pd.read_csv("Dataset\Tags.csv", nrows = 200, encoding = "ISO-8859-1")
 # qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 200, encoding = "ISO-8859-1")
 # aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 200, encoding = "ISO-8859-1")
@@ -183,6 +183,35 @@ def detectTags(df: pd.DataFrame, overlap: dict):
         all_common_tags.append(common)
     df['Detected Tags'] = all_common_tags
     df.drop(['combined'], axis=1, inplace=True)
+
+# Detect tags for the question taken from user input
+def detectTagsFromInput(overlap: dict) -> list:
+    question = input("Please enter your question: ")
+    text = []
+    # Split each question into a list of words
+    words = question.split()
+    # Join the tag names for each word in the question together in a string
+    for word in words:
+        try:
+            text.append(' '.join(overlap[word]))
+        except KeyError:
+            pass
+    # Count and find the 5 most common tags in the question
+    try:
+        count_vectorizer = CountVectorizer()
+        tag_counts = count_vectorizer.fit_transform(text)
+        tag_count_dict = dict(zip(count_vectorizer.get_feature_names_out(), tag_counts.sum(axis=0).tolist()[0]))
+        most_common_tags = Counter(tag_count_dict).most_common(5)
+        print(f"Most common tags for question '{question}':")
+        print(most_common_tags)
+        common = []
+        for word in most_common_tags:
+            common.append(word[0])
+    except ValueError:
+        print("No tag detected for question {}")
+        common = ['']
+        pass
+    return common
 
 # Load the cleaned CSV file (if it exists)
 try:
