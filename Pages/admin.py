@@ -7,22 +7,22 @@ import main
 busy_users = [] # List to store user IDs with status 'Busy'
 
 # Get the dataset
-df = main.eDataset.copy()
-print(df.head())
+Ogdf = main.eDataset.copy()
+# print(df.head())
 
 def updateUserStatus(inputUserID):
     print(inputUserID)
     inputUserID = float(inputUserID)
-    rowIndexList = df.index[df['Ids'] == inputUserID].tolist()
+    rowIndexList = Ogdf.index[Ogdf['Ids'] == inputUserID].tolist()
     if len(rowIndexList) > 0:
         rowIndex = rowIndexList[0]
 
-        if df.at[rowIndex, 'Status'] == 'Active':
+        if Ogdf.at[rowIndex, 'Status'] == 'Active':
             busy_users.append(inputUserID)
-            df.at[rowIndex, 'Status'] = 'Busy'
+            Ogdf.at[rowIndex, 'Status'] = 'Busy'
         else:
             busy_users.remove(inputUserID)
-            df.at[rowIndex, 'Status'] = 'Active'
+            Ogdf.at[rowIndex, 'Status'] = 'Active'
         
         print(busy_users)
     else:
@@ -99,7 +99,11 @@ admin_layout=html.Div(
                                 html.Div(
                                     className="updateDiv",
                                     children=[
-                                        html.H2("Update a users status below", className="updateTitle"),
+                                        html.H2("Update Status", className="updateTitle"),
+                                        html.Img(
+                                            className="statusImg",
+                                            src="assets\Status.png"
+                                        ),
                                         html.Div(
                                             className="id-search-bar",
                                             children=[
@@ -140,10 +144,10 @@ admin_layout=html.Div(
     prevent_initial_call=True
 )
 def filter_data(n_clicks, first_name, last_name, status):
-    global df
+    df = Ogdf.copy()
     # Apply filters based on selected values
     if first_name:
-        df = df[df['FirstName'] == first_name]
+        df = df[df['FirstName'] == first_name] 
     if last_name:
         df = df[df['LastName'] == last_name]
     if status != 'all':
@@ -152,19 +156,23 @@ def filter_data(n_clicks, first_name, last_name, status):
     # Create a list of div elements, one for each row in the filtered dataset
     divs = []
     for i, row in df.iterrows():
-        div = html.Div([
+        div = html.Div(
+        className="userCard",
+        children=[
             html.P(f"ID: {row['Ids']}"),
             html.P(f"Name: {row['FirstName']} {row['LastName']}"),
             html.P(f"Email: {row['Email']}"),
             html.P(f"Job Title: {row['JobTitle']}"),
             html.P(f"Address: {row['Address']}"),
             html.P(f"Status: {row['Status']}"),
-            html.Hr()
         ])
         divs.append(div)
 
     # Return the list of div elements
-    return divs
+    return  html.Div(
+                className="cardGrid",
+                children=divs
+            ) 
 
 @app.callback(
     Output(component_id='confirmStatus', component_property='children'),
