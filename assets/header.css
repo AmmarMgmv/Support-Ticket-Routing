@@ -356,3 +356,61 @@ textarea.indexInput{
     padding-top: .4rem;
     padding-bottom: .4rem;
 }
+
+/* ------------------------------------------------------------------------------ */
+
+.adminRow{
+    display: flex;
+    width: 100%;
+}
+
+.resultsColumn{
+    width: 75%;
+}
+
+.updatesColumn{
+    width: 25%;
+}
+
+.updateTitle{
+    color: white;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.updateDiv{
+    background: #054b80;
+    margin: 2rem;
+    min-height: 41rem;
+    text-align: center;
+    width: 85%;
+    border-radius: 35px;
+}
+
+.updateBtn{
+    padding: 0.6rem 1.3rem;
+    width: 80%;
+    background-color: #054b80;
+    border: 2px solid #fafafa;
+    font-size: 1rem;
+    color: #fff;
+    line-height: 1;
+    border-radius: 25px;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    margin: 0;
+}
+
+.updateBtn:hover {
+    background-color: #fff;
+    color: #054b80;
+}
+
+.id-search-bar button{
+    margin-top: 4rem;
+}
+
+.idInput{
+    color: black;
+}

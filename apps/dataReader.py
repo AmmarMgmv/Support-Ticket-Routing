@@ -1,23 +1,38 @@
 import pandas as pd
 
 # This function calls on all the functions below
-def askQuestions(tData, qData, aData):
-    uniqueTags(tData)
-    uniqueOwnerId(qData, aData)
-    questionsPerTag(tData)
-    questionsPerOwner(qData, aData)
-    questionsPerDay(qData)
-    questionsPerTagPerDay(tData, qData)
-    topOwnerIdTag(tData, aData)
-    answersPerQuestion(aData)
-    unansweredQuestions(qData, aData)
-    questionsPerMonthAndYear(tData, qData)
+# def askQuestions(tData, qData, aData):
+#     uniqueTags(tData)
+#     uniqueOwnerId(qData, aData)
+#     questionsPerTag(tData)
+#     questionsPerOwner(qData, aData)
+#     questionsPerDay(qData)
+#     questionsPerTagPerDay(tData, qData)
+#     topOwnerIdTag(tData, aData)
+#     answersPerQuestion(aData)
+#     unansweredQuestions(qData, aData)
+#     questionsPerMonthAndYear(tData, qData)
+
+# This function gets the list and count of unique first names
+def findUniqueFirstNames(datasetE):
+    #loc: choose column by name
+    firstNames = datasetE.loc[:,"FirstName"] 
+    uniqueFirstNames = pd.unique(firstNames) 
+    return uniqueFirstNames
+
+# This function gets the list and count of unique last names
+def findUniqueLastNames(datasetE):
+    #loc: choose column by name
+    lastNames = datasetE.loc[:,"LastName"] 
+    uniqueLastNames = pd.unique(lastNames) 
+    return uniqueLastNames
 
 # This function gets the list and count of unique tags
 def uniqueTags(datasetT):
     #loc: choose column by name
     tags = datasetT.loc[:,"Tag"] 
     uniqueTags = pd.unique(tags) 
+    return uniqueTags
 
 
 # This function gets the list and count of unique owner ID's

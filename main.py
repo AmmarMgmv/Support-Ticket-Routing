@@ -25,6 +25,7 @@ from apps import dataManipulator, dataReader
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
 qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 1000, encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 1000, encoding = "ISO-8859-1")
+eDataset = pd.read_csv("Dataset\EngineersDataset.csv", encoding = "ISO-8859-1")
 
 # ------------------------------------------------------------------------------------------
 # 
@@ -101,8 +102,6 @@ for i, row in final_df.iterrows():
     if i == 10000:
         break
 writer.commit()
-
-
 
 # Function to search the index
 def index_search(dirname, search_fields, search_query):
@@ -191,6 +190,15 @@ def index_search(dirname, search_fields, search_query):
 tag_common, all_common_words = dataManipulator.commonWords(groups)
 overlap_words = dataManipulator.overlappedCommonWords(tag_common, all_common_words)
 # detectTags(qDataset, overlap_words)
+
+# ------------------------------------------------------------------------------------------
+# 
+#                               LOAD DATA FOR ADMIN PAGES                               
+# 
+# ------------------------------------------------------------------------------------------
+# eDataset['Ids'] = eDataset['Ids'].astype(int)
+uniqueFN = dataReader.findUniqueFirstNames(eDataset)
+uniqueLN = dataReader.findUniqueLastNames(eDataset)
 
 # ------------------------------------------------------------------------------------------
 # 
