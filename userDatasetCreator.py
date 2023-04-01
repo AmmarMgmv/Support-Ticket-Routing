@@ -5,10 +5,13 @@ import pandas as pd
 
 cleanQDataset = pd.read_csv("Dataset\Questions_cleaned.csv", encoding = "ISO-8859-1")
 aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+jobList = pd.read_csv("Dataset\engineerjobs.csv", encoding = "ISO-8859-1")
+jobList.drop('Unnamed: 1', axis=1)
 
 domains = ["gmail.com", "hotmail.com", "livemillennium.com", "millenium.com"]
 inBetween = ['_', '-', '.']
-validIds = {61.0}
+validIds = {61}
+listJob = jobList['Jobs'].tolist()
 
 def generateEmail(firstName: str, lastName: str):
     domainNum = random.randint(0, len(domains)-1)
@@ -42,6 +45,11 @@ def addAnsIds():
 def addQuesIds():
     addIds(cleanQDataset, 'OwnerUserId')
 
+def getJob():
+    jobNum = random.randint(0, len(listJob)-1)
+    job = listJob[jobNum]
+    return job
+
 
 
 newADataset = aDataset.copy()
@@ -65,7 +73,8 @@ activeStatus = []
 for i in range(size):
     first = fake.first_name()
     last = fake.last_name()
-    job = fake.job()
+    #job = fake.job()
+    job = getJob()
     address = f'{fake.city()}, {fake.country()}'
     firstNames.append(first)
     lastNames.append(last)
