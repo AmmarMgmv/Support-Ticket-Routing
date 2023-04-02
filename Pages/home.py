@@ -2,10 +2,10 @@ import dash
 from dash import html, dcc 
 from dash import callback_context
 from dash.dependencies import Input, Output, State
-from apps import navigation
+from apps import navigation, dataManipulator
 from main import app
 import main
-from apps import dataManipulator
+import json
 
 home_layout = html.Div(children=
     [
@@ -120,44 +120,86 @@ home_layout = html.Div(children=
         ), 
     ],
 )
-def ranker(engineersList):
-    sorted_engineers = sorted(engineersList, key=lambda x: x["Score"], reverse=True)
+def findTop25(engineers):
+    qCounter = 0
+    aCounter = 0
+    lastQuestion = ""
+    top25 = []
+    for engineer in engineers:
+        # printable_userID = engineer['Ids']
+        # printable_Fn = engineer['FirstName']
+        # printable_Ln = engineer['LastName']
+        # fullID = printable_Fn + " " + printable_Ln + " (" + printable_userID + ")"
+        # print(engineer)
+        if(lastQuestion != engineer['QuestionBody']):
+            aCounter = 0
+            qCounter += 1
+            if aCounter < 5:
+                top25.append(engineer)
+                # print(fullID)
+                aCounter += 1
+        else:
+            if aCounter < 5:
+                top25.append(engineer)
+                # print(fullID)
+                aCounter += 1
+        lastQuestion = engineer['QuestionBody']
+        if qCounter == 5:
+                break
+    return top25
 
-    return sorted_engineers[:5]
+def findTop5(uniqueE):
+    topEngineers = []
+    allScores = []
+    for engineer in uniqueE:
+        allScores.append(engineer['Score'])
+    # scores = list(map(int, allScores))
+    scores = sorted(allScores, reverse=True)
+    top5 = scores[:5]
+
+    engineerCounter = 0
+    for engineer in uniqueE:
+        userScore = engineer['Score']
+        for i in top5:
+            if engineerCounter <= 5:
+                if i == userScore:
+                    topEngineers.append(engineer)
+                    engineerCounter += 1
+                    break
+            else:
+                return topEngineers
+    return topEngineers
 
 #Callback for getting the engineers best suited to the question
-# @app.callback(
-#     # Output(component_id='dTags', component_property='children'),
-#      Output(component_id='engineers', component_property='children'),
-#     [Input(component_id='question_textarea', component_property='value')],
-#     prevent_initial_call=True
-# )
-# def updateInfo(n,input):
-#     engineer=[]
-#     engineer_div = html.Div([])
+@app.callback(
+    Output(component_id='engineers', component_property='children'),
+    [Input(component_id='searchButton', component_property='n_clicks')],
+    [State(component_id='question_textarea', component_property='value')],
+    prevent_initial_call=True
+)
+def updateEngineers(n,input):
+    engineer=[]
     
-#     engineer = main.index_search("index_dir", ["Body"], input)
-#     topEngineers = ranker(engineer)
+    engineer = main.index_search("index_dir", ["Body"], input)
+    topEngineers = findTop25(engineer)
+    uniqueEngineers = list({v['Ids']:v for v in topEngineers}.values())
+    topFive = findTop5(uniqueEngineers)
+    engineersDivs = []
+    for i in topFive:
+        div = html.Div(
+            className="testCard",
+            children=[
+                html.Div(className="eachEngineer", children=[f"{i['FirstName']} {i['LastName']} (ID: {i['Ids']})"]),
+            ])
+        engineersDivs.append(div)
 
-#     engineersDivs = []
-#     for i, row in topEngineers.iterrows():
-#         div = html.Div(
-#         className="userCard",
-#         children=[
-#             html.P(f"ID: {row['Ids']}"),
-#             html.P(f"Name: {row['FirstName']} {row['LastName']}"),
-#             html.P(f"Email: {row['Email']}"),
-#             html.P(f"Job Title: {row['JobTitle']}"),
-#             html.P(f"Address: {row['Address']}"),
-#             html.P(f"Status: {row['Status']}"),
-#         ])
-#         engineersDivs.append(div)
+    return engineersDivs
 
-#     if n > 0 and input != "":
-#         engineer_div = html.Div([
-#             *[html.Div(e, className="eachEngineer") for e in engineer]
-#         ])
-#     return engineer_div
+
+
+
+
+
 
 #Callback for getting the tags associated with the question
 @app.callback(
@@ -165,7 +207,7 @@ def ranker(engineersList):
     [Input(component_id='question_textarea', component_property='value')],
     prevent_initial_call=True
 )
-def updateInfo(input):
+def updateTags(input):
 
     tag = dataManipulator.detectTagsFromInput(main.overlap_words, input)
     # Create a div for tags

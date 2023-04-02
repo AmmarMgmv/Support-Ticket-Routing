@@ -73,7 +73,7 @@ columns_to_read_answers = ['Body', 'ParentId', 'OwnerUserId']
 ansDataset = pd.read_csv("Dataset\Answers.csv",encoding = "ISO-8859-1",usecols=columns_to_read_answers)
 ansDataset = ansDataset.rename(columns={'Body': 'Answer_Body'})
 
-columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score']
+columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score', 'Email']
 engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859-1", usecols=columns_to_read_ids)
 
 merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
@@ -83,7 +83,14 @@ final_df = pd.merge(merged_df, engineerDataset, left_on='OwnerUserId', right_on=
 my_analyzer = RegexTokenizer() | LowercaseFilter()
 
 # Define the schema for the index
-schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer),Ids=TEXT(stored=True, analyzer=my_analyzer),FirstName=TEXT(stored=True, analyzer=my_analyzer),LastName=TEXT(stored=True, analyzer=my_analyzer), Score=NUMERIC(stored=True))
+schema = Schema(
+    Body=TEXT(stored=True, analyzer=my_analyzer),
+    Answer_Body=TEXT(stored=True, analyzer=my_analyzer),
+    Ids=TEXT(stored=True, analyzer=my_analyzer),
+    FirstName=TEXT(stored=True, analyzer=my_analyzer),
+    LastName=TEXT(stored=True, analyzer=my_analyzer), 
+    Score=NUMERIC(stored=True), 
+    Email=TEXT(stored=True, analyzer=my_analyzer))
 
 # Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
@@ -100,7 +107,8 @@ for i, row in final_df.iterrows():
     FirstName = row['FirstName']
     LastName = row['LastName']
     Score = row['Score']
-    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score)
+    Email = row['Email']
+    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score,Email=Email)
     if i == 10000:
         break
 writer.commit()
@@ -128,6 +136,7 @@ def index_search(dirname, search_fields, search_query):
             result_dict["FirstName"] = hit.fields()["FirstName"]
             result_dict["LastName"] = hit.fields()["LastName"]
             result_dict["Score"] = hit.fields()["Score"]
+            result_dict["Email"] = hit.fields()["Email"]
             # result_dict["score"] = hit.score
             results_list.append(result_dict)
         

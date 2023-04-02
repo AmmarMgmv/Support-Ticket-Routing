@@ -211,6 +211,15 @@ textarea.indexInput{
     padding-top: 0.5rem;
     background-color: #fff;
     border-radius: 22px;
+    overflow: scroll;
+}
+
+.recommendUsers::-webkit-scrollbar {
+    display: none;
+}
+
+.detectedTags::-webkit-scrollbar {
+    display: none;
 }
 
 .big-circle {
@@ -498,3 +507,7 @@ textarea.indexInput{
     width: 220px;
     padding-bottom: 1rem;
 }
+
+/* .testCard{
+    overflow: scroll;
+} */
