@@ -120,31 +120,46 @@ home_layout = html.Div(children=
         ), 
     ],
 )
+def ranker(engineersList):
+    sorted_engineers = sorted(engineersList, key=lambda x: x["Score"], reverse=True)
 
-@app.callback(
-    # Output(component_id='dTags', component_property='children'),
-     Output(component_id='engineers', component_property='children'),
-    [Input(component_id='searchButton', component_property='n_clicks')],
-    [State(component_id='question_textarea', component_property='value')],
-    prevent_initial_call=False
-)
-def updateInfo(n,input):
-    # tag=['html', 'css', 'javascript', 'react', 'angular']
-    engineer=['Ryan Gallagher (ID: 778923)', 'Adam Blake (ID: 345732)', 'Chris Johnson (ID: 143675)', 'Abigail Mary (ID: 234247)', 'Terry Crews (ID: 893487)']
-    # tag_div = html.Div([])
-    engineer_div = html.Div([])
+    return sorted_engineers[:5]
+
+#Callback for getting the engineers best suited to the question
+# @app.callback(
+#     # Output(component_id='dTags', component_property='children'),
+#      Output(component_id='engineers', component_property='children'),
+#     [Input(component_id='question_textarea', component_property='value')],
+#     prevent_initial_call=True
+# )
+# def updateInfo(n,input):
+#     engineer=[]
+#     engineer_div = html.Div([])
     
-    if n > 0 and input != "":
-        engineer_div = html.Div([
-            *[html.Div(e, className="eachEngineer") for e in engineer]
-        ])
-        
-        # Create a div for tags
-        # tag_div = html.Div([
-        #     *[html.Div(t, className="eachTag") for t in tag]
-        # ])
-    return engineer_div
+#     engineer = main.index_search("index_dir", ["Body"], input)
+#     topEngineers = ranker(engineer)
 
+#     engineersDivs = []
+#     for i, row in topEngineers.iterrows():
+#         div = html.Div(
+#         className="userCard",
+#         children=[
+#             html.P(f"ID: {row['Ids']}"),
+#             html.P(f"Name: {row['FirstName']} {row['LastName']}"),
+#             html.P(f"Email: {row['Email']}"),
+#             html.P(f"Job Title: {row['JobTitle']}"),
+#             html.P(f"Address: {row['Address']}"),
+#             html.P(f"Status: {row['Status']}"),
+#         ])
+#         engineersDivs.append(div)
+
+#     if n > 0 and input != "":
+#         engineer_div = html.Div([
+#             *[html.Div(e, className="eachEngineer") for e in engineer]
+#         ])
+#     return engineer_div
+
+#Callback for getting the tags associated with the question
 @app.callback(
     Output(component_id='dTags', component_property='children'),
     [Input(component_id='question_textarea', component_property='value')],

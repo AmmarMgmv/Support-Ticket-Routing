@@ -4,7 +4,7 @@ import re
 import os
 import dash_bootstrap_components as dbc
 from whoosh import index, qparser
-from whoosh.fields import Schema, TEXT
+from whoosh.fields import Schema, TEXT, NUMERIC
 from whoosh.qparser import FuzzyTermPlugin
 from whoosh.analysis import RegexTokenizer, LowercaseFilter
 from apps import dataManipulator, dataReader
@@ -23,8 +23,8 @@ from apps import dataManipulator, dataReader
 
 # ## FOR DEBUG: temporarily reads the first 200 rows of csv files
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 1000, encoding = "ISO-8859-1")
-aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 1000, encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 10000, encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 10000, encoding = "ISO-8859-1")
 eDataset = pd.read_csv("Dataset\EngineersDataset.csv", encoding = "ISO-8859-1")
 
 # ------------------------------------------------------------------------------------------
@@ -35,19 +35,20 @@ eDataset = pd.read_csv("Dataset\EngineersDataset.csv", encoding = "ISO-8859-1")
 
 # Load the cleaned CSV file (if it exists)
 # try:
-#     qDataset = pd.read_csv("Dataset/Questions_cleanLemma.csv")
+#     cleanedDataset = pd.read_csv("Dataset/Questions_cleaned.csv")
 #     print("Cleaned dataset loaded from file")
 # except FileNotFoundError:
 # # If the cleaned CSV file does not exist, then clean the dataset and save it to file
+#     cleanedDataset = qDataset.copy()
 #     print("Cleaning dataset...")
-#     qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-#     qDataset['Cleaned Title'] = cleanAndLemmatize(qDataset, 'Title')
-#     qDataset['Cleaned Body'] = cleanAndLemmatize(qDataset, 'Cleaned Body')
-#     qDataset['Title'] = qDataset['Cleaned Title']
-#     qDataset['Body'] = qDataset['Cleaned Body']
-#     qDataset.drop('Cleaned Title', axis=1, inplace=True)
-#     qDataset.drop('Cleaned Body', axis=1, inplace=True)
-#     qDataset.to_csv("Dataset/Questions_cleanLemma.csv", index=False)
+#     cleanedDataset['Cleaned Body'] = cleanedDataset['Body'].apply(dataManipulator.remove_tags)
+#     cleanedDataset['Cleaned Title'] = dataManipulator.remove_stopwords(cleanedDataset, 'Title')
+#     cleanedDataset['Cleaned Body'] = dataManipulator.remove_stopwords(cleanedDataset, 'Cleaned Body')
+#     cleanedDataset['Title'] = cleanedDataset['Cleaned Title']
+#     cleanedDataset['Body'] = cleanedDataset['Cleaned Body']
+#     cleanedDataset.drop('Cleaned Title', axis=1, inplace=True)
+#     cleanedDataset.drop('Cleaned Body', axis=1, inplace=True)
+#     cleanedDataset.to_csv("Dataset/Questions_cleaned.csv", index=False)
 #     print("Cleaned dataset saved to file")
 
 TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
@@ -68,21 +69,21 @@ def remove_html_tags(text):
 columns_to_read = ['Body', 'Id']
 quesDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1",usecols=columns_to_read)
 
-columns_to_read_answers = ['Body', 'ParentId']
+columns_to_read_answers = ['Body', 'ParentId', 'OwnerUserId']
 ansDataset = pd.read_csv("Dataset\Answers.csv",encoding = "ISO-8859-1",usecols=columns_to_read_answers)
 ansDataset = ansDataset.rename(columns={'Body': 'Answer_Body'})
 
-columns_to_read_ids = ['Ids', 'FirstName', 'LastName']
+columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score']
 engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859-1", usecols=columns_to_read_ids)
 
 merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
-final_df = pd.merge(merged_df, engineerDataset, left_on='Id', right_on='Ids')
+final_df = pd.merge(merged_df, engineerDataset, left_on='OwnerUserId', right_on='Ids')
 
 # fuzzy search on question data set
 my_analyzer = RegexTokenizer() | LowercaseFilter()
 
 # Define the schema for the index
-schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer),Ids=TEXT(stored=True, analyzer=my_analyzer),FirstName=TEXT(stored=True, analyzer=my_analyzer),LastName=TEXT(stored=True, analyzer=my_analyzer))
+schema = Schema(Body=TEXT(stored=True, analyzer=my_analyzer),Answer_Body=TEXT(stored=True, analyzer=my_analyzer),Ids=TEXT(stored=True, analyzer=my_analyzer),FirstName=TEXT(stored=True, analyzer=my_analyzer),LastName=TEXT(stored=True, analyzer=my_analyzer), Score=NUMERIC(stored=True))
 
 # Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
@@ -98,7 +99,8 @@ for i, row in final_df.iterrows():
     Ids = str(row['Ids'])
     FirstName = row['FirstName']
     LastName = row['LastName']
-    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName)
+    Score = row['Score']
+    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score)
     if i == 10000:
         break
 writer.commit()
@@ -108,7 +110,7 @@ def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
     schema = ix.schema
     
-    og = qparser.OrGroup.factory(0.8)
+    og = qparser.OrGroup.factory(0.2)
     mp = qparser.MultifieldParser(search_fields, schema, group=og)
     mp.add_plugin(FuzzyTermPlugin())
     q = mp.parse(search_query + "~")
@@ -125,7 +127,12 @@ def index_search(dirname, search_fields, search_query):
             result_dict["Ids"] = hit.fields()["Ids"]
             result_dict["FirstName"] = hit.fields()["FirstName"]
             result_dict["LastName"] = hit.fields()["LastName"]
+            result_dict["Score"] = hit.fields()["Score"]
+            # result_dict["score"] = hit.score
             results_list.append(result_dict)
+        
+        # Sort the search results by score
+        # results_list = sorted(results_list, key=lambda x: x["score"], reverse=True)
             
         return results_list
     

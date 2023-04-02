@@ -1,10 +1,5 @@
-.navbar-nav .nav-link {
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-.navbar .text-light {
-    font-size: 20px;
+.navbar{
+    z-index: 100;
 }
 
 * {
@@ -270,6 +265,44 @@ textarea.indexInput{
     flex-direction: column;
 }
 
+.hexagon1{
+    position: fixed;
+    height: 900px;
+    top: 25%;
+    left: 65%;
+    transform: translate(181%, 11%);
+    transform: rotate(90deg);
+    opacity: 0.3;
+}
+
+/* .dots{
+    position: fixed;
+    height: 500px;
+    width: 600px;
+    top: 13.5%;
+    left: -11.5%;
+    transform: translate(181%, 11%);
+    transform: rotate(90deg);
+    opacity: 0.3;
+} */
+.hexagon-container {
+    position: absolute;
+    margin: 0 auto;
+    transform: translate(181%, 11%);
+    transform-origin: 50% 50%;
+}
+
+.hexagon2{
+    position: fixed;
+    height: 900px;
+    top: -17%;
+    left: -21%;
+    transform: translate(181%, 11%);
+    transform: rotate(270deg);
+    opacity: 0.3;
+    z-index: 1;
+}
+
 .search-bar{
     width: 100%;
     max-width: 1250px;
@@ -279,6 +312,7 @@ textarea.indexInput{
     border-radius: 60px;
     padding: 10px 20px;
     backdrop-filter: blur(4px) saturate(180%);
+    z-index: 2;
 }
 
 .search-bar input{
@@ -314,10 +348,9 @@ textarea.indexInput{
     width: 100%;
     max-width: 1500px;
     min-height: 700px;
-    height: 100%;
-    background-color: rgb(5, 75, 128, 1);
+    height: 400px;
+    background-color: transparent;
     border-radius: 10px;
-    /* box-shadow: 0 0 20px 1px rgba(0,0,0,0.5); */
     color: #fff;
     z-index: 1000;
     overflow-x: hidden;
@@ -329,15 +362,24 @@ textarea.indexInput{
     display: none;
 }
 
+.presults::-webkit-scrollbar {
+    display: none;
+}
+
 .eachResult{
-    background-color: #236ea79c;
     border-radius: 15px;
-    margin-top: 1rem;
+    background-color: #1c67a0;
+    box-shadow: 0 0 15px 1px rgba(0,0,0,0.5);
+    margin-top: 2rem;
 }
 
 .searchQuestion{
     padding: 1rem;
     font-size: 1.2rem;
+    background-color: #054b80;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+
 }
 
 .searchAnswer{
@@ -356,7 +398,6 @@ textarea.indexInput{
     padding-top: .4rem;
     padding-bottom: .4rem;
 }
-
 /* ------------------------------------------------------------------------------ */
 
 .adminRow{

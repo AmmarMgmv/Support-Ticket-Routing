@@ -17,6 +17,23 @@ search_layout = html.Div(children=
         html.Div(
             className="searchContainer",
             children=[
+                html.Img(
+                    className="hexagon1",
+                    src="assets\hexagons.png"
+                ),
+                # html.Img(
+                #     className="dots",
+                #     src="assets\dots.png"
+                # ),
+                html.Div(
+                    className="hexagonContainer",
+                    children=[
+                        html.Img(
+                            className="hexagon2",
+                            src="assets\hexagons.png"
+                        ),
+                    ] 
+                ),
                 html.Div(
                     # action="{{ url_for('search') }}",
                     # method="POST",
@@ -46,6 +63,7 @@ search_layout = html.Div(children=
                     children=[
                         html.Div(
                             id='presults',
+                            className="presults",
                             style={'overflow': 'auto', 'height': '100%', 'padding':'2rem'}
                         ),
                     ],
@@ -66,10 +84,13 @@ def get_results(n, input_question):
     lastQuestion = ""
     qCounter = 0
     aCounter = 0
-    userId = "Ryan Gallagher (ID: 778923)"
     if input_question != "":
         results = index_search("index_dir", ["Body"], input_question)
         for result in results:
+            printable_userID = result['Ids']
+            printable_Fn = result['FirstName']
+            printable_Ln = result['LastName']
+            fullID = printable_Fn + " " + printable_Ln + " (" + printable_userID + ")"
             printable_q = result['QuestionBody']
             printable_a = result['AnswerBody']
             if (lastQuestion != result['QuestionBody']):
@@ -80,7 +101,7 @@ def get_results(n, input_question):
                     [
                         html.Div(printable_q, className="searchQuestion"),
                         html.Div([
-                            html.Div(userId, className="usersID"), html.Div(printable_a, className="usersAnswer")], className="searchAnswer")
+                            html.Div(fullID, className="usersID"), html.Div(printable_a, className="usersAnswer")], className="searchAnswer")
                     ],
                     className="eachResult"
                     ))
@@ -88,7 +109,7 @@ def get_results(n, input_question):
             else:
                 if aCounter < 5:
                     printresults[-1].children.append(html.Div(
-                        [html.Div(userId, className="usersID" ), html.Div(printable_a, className="usersAnswer")], className="searchAnswer"))
+                        [html.Div(fullID, className="usersID" ), html.Div(printable_a, className="usersAnswer")], className="searchAnswer"))
                     aCounter += 1
             lastQuestion = result['QuestionBody']
             if qCounter == 5:
