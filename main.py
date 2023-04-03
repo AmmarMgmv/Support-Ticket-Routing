@@ -34,24 +34,24 @@ eDataset = pd.read_csv("Dataset\EngineersDataset.csv", encoding = "ISO-8859-1")
 # ------------------------------------------------------------------------------------------
 
 # Load the cleaned CSV file (if it exists)
-# try:
-#     cleanedDataset = pd.read_csv("Dataset/Questions_cleaned.csv")
-#     print("Cleaned dataset loaded from file")
-# except FileNotFoundError:
-# # If the cleaned CSV file does not exist, then clean the dataset and save it to file
-#     cleanedDataset = qDataset.copy()
-#     print("Cleaning dataset...")
-#     cleanedDataset['Cleaned Body'] = cleanedDataset['Body'].apply(dataManipulator.remove_tags)
-#     cleanedDataset['Cleaned Title'] = dataManipulator.remove_stopwords(cleanedDataset, 'Title')
-#     cleanedDataset['Cleaned Body'] = dataManipulator.remove_stopwords(cleanedDataset, 'Cleaned Body')
-#     cleanedDataset['Title'] = cleanedDataset['Cleaned Title']
-#     cleanedDataset['Body'] = cleanedDataset['Cleaned Body']
-#     cleanedDataset.drop('Cleaned Title', axis=1, inplace=True)
-#     cleanedDataset.drop('Cleaned Body', axis=1, inplace=True)
-#     cleanedDataset.to_csv("Dataset/Questions_cleaned.csv", index=False)
-#     print("Cleaned dataset saved to file")
+try:
+    cleanedDataset = pd.read_csv("Dataset/Questions_cleaned.csv")
+    print("Cleaned dataset loaded from file")
+except FileNotFoundError:
+# If the cleaned CSV file does not exist, then clean the dataset and save it to file
+    cleanedDataset = qDataset.copy()
+    print("Cleaning dataset...")
+    cleanedDataset['Cleaned Body'] = cleanedDataset['Body'].apply(dataManipulator.remove_tags)
+    cleanedDataset['Cleaned Title'] = dataManipulator.remove_stopwords(cleanedDataset, 'Title')
+    cleanedDataset['Cleaned Body'] = dataManipulator.remove_stopwords(cleanedDataset, 'Cleaned Body')
+    cleanedDataset['Title'] = cleanedDataset['Cleaned Title']
+    cleanedDataset['Body'] = cleanedDataset['Cleaned Body']
+    cleanedDataset.drop('Cleaned Title', axis=1, inplace=True)
+    cleanedDataset.drop('Cleaned Body', axis=1, inplace=True)
+    cleanedDataset.to_csv("Dataset/Questions_cleaned.csv", index=False)
+    print("Cleaned dataset saved to file")
 
-TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
+TagsQs = pd.merge(tagDataset, cleanedDataset[["Id", "Title", "Body"]], on="Id")
 groups = TagsQs.groupby('Tag')
 
 # ------------------------------------------------------------------------------------------

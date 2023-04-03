@@ -80,6 +80,7 @@ search_layout = html.Div(children=
     prevent_initial_call=False
 )
 def get_results(n, input_question):
+    input_question = input_question.replace('?', '')
     printresults = []
     lastQuestion = ""
     qCounter = 0

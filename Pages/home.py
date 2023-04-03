@@ -203,12 +203,6 @@ def updateEngineers(n,input):
 
     return engineersDivs
 
-
-
-
-
-
-
 #Callback for getting the tags associated with the question
 @app.callback(
     Output(component_id='dTags', component_property='children'),
@@ -217,6 +211,8 @@ def updateEngineers(n,input):
 )
 def updateTags(input):
 
+    input = input.lower()
+    input = input.replace('?', '')
     tag = dataManipulator.detectTagsFromInput(main.overlap_words, input)
     # Create a div for tags
     tag_div = html.Div([

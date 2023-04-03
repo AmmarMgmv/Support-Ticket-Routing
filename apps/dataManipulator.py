@@ -86,7 +86,7 @@ def overlappedCommonWords(tag_common : dict, all_common: List[str]) -> dict:
     # print("Overlapping words accross tags: ")
     already_checked = []
     for key in tag_common:
-        for num in range(5):
+        for num in range(1):
             count = 0
             for item in all_common:
                 if tag_common[key][num] == item:
