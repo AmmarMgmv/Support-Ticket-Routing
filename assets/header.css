@@ -388,7 +388,6 @@ textarea.indexInput{
     background-color: #054b80;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
-
 }
 
 .searchAnswer{
@@ -511,3 +510,63 @@ textarea.indexInput{
 /* .testCard{
     overflow: scroll;
 } */
+
+/* ---------------------------------------------------------------------------- */
+
+.doubleRow{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-top: 2rem;
+}
+
+.occurrenceColumn{
+    margin-right: 0.5rem;
+    width: 49.5%;
+    box-shadow: 0 0 10px 1px rgba(0,0,0,0.5);
+    background-color: #1f659b;
+}
+
+.yearColumn{
+    margin-left: 0.5rem;
+    width: 49.5%;
+    box-shadow: 0 0 10px 1px rgba(0,0,0,0.5);
+    background-color: #1f659b;
+}
+
+.singleRow{
+    margin: 1rem;
+    margin-top: 2rem;
+    box-shadow: 0 0 10px 1px rgba(0,0,0,0.5);
+    background-color: #1f659b;
+}
+
+.occurrenceTitle, .MYTitle, .QuestionNoTitle{
+    margin-top: 0.5rem;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+}
+
+.infoRow{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+.infoTab{
+    text-align: center;
+    background-color: #1f659b;
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.5);
+    height: 6rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    width: 25%;
+}

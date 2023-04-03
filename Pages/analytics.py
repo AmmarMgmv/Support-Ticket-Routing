@@ -20,82 +20,160 @@ fig3 = px.bar(QsPerDay, x='Date', y='QsAsked', barmode="group")                 
 
 analytics_layout = html.Div(children=[
     navigation.navbar,
-    html.H1(children='Graph showing the top 20 most searched tags',
-            style={
-                'textAlign': 'center',
-                'font-family':'Arial'}),
-    dcc.Graph(
-        id='tag-graph',
-        figure=fig
+    html.Div(
+        className="infoRow",
+        children=[
+            html.Div(
+                className="infoTab",
+                children=[
+                    '1 million Questions'
+                ]
+            ),
+            html.Div(
+                className="infoTab",
+                children=[
+                    '2 million Answers'
+                ]
+            ),
+            html.Div(
+                className="infoTab",
+                children=[
+                    '400k Tags'
+                ]
+            ),
+            html.Div(
+                className="infoTab",
+                children=[
+                    '100k Unique Users'
+                ]
+            ),
+        ]
     ),
-    html.H1(children='Table showing tags and frequency',
-            style={
-                'textAlign': 'center',
-                'font-family':'Arial'}),
-    html.Div(dash_table.DataTable(
-        tagsDF.to_dict('records'),
-        columns=[
-            {'name': 'Tag', 'id': 'Tag'},
-            {'name': 'Frequency', 'id': 'Occurrences'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-            'backgroundColor': 'rgb(30, 30, 30)',
-            'color': 'white',
-        },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-    )),
-    html.H1(children='Graph showing tags searched by month and year',
-            style={
-                'textAlign': 'center',
-                'font-family':'Arial'}),
-    dcc.Graph(
-        id='MY-graph',
-        figure=fig2
+    html.Div(
+        className="doubleRow",
+        children=[
+            html.Div(
+                className="occurrenceColumn",
+                children=[
+                    html.Div(
+                        className="ocurrenceRow",
+                        children=[
+                            html.H1(
+                                className="occurrenceTitle",
+                                children='Top 20 Most Searched Tags',
+                            ),
+                            dcc.Graph(
+                                id='tag-graph',
+                                figure=fig
+                            ),
+                        ]
+                    ),
+                ]
+            ),
+            html.Div(
+                className="yearColumn",
+                children=[
+                    html.Div(
+                        className="yearMonthRow",
+                        children=[
+                            html.H1(
+                                className="MYTitle",
+                                children='Number of Tags Searched per Month/Year',
+                            ),
+                            dcc.Graph(
+                                id='MY-graph',
+                                figure=fig2
+                            ),
+                        ]
+                    )
+                ]
+            ),
+        ]
     ),
+    html.Div(
+        className="singleRow",
+        children=[
+            html.H1(
+                className="QuestionNoTitle",
+                children=['Number of Questions per Day'],
+            ),
+            dcc.Graph(
+                id='questions-graph',
+                figure=fig3
+            ), 
+        ]
+    ),
+    
+                    # html.H1(
+                    #     children='Table showing tags and frequency'
+                    # ),
+                    # html.Div(dash_table.DataTable(
+                    #     tagsDF.to_dict('records'),
+                    #     columns=[
+                    #         {'name': 'Tag', 'id': 'Tag'},
+                    #         {'name': 'Frequency', 'id': 'Occurrences'},
+                    #     ],
+                    #     style_cell_conditional=[
+                    #         {
+                    #             'textAlign': 'left',
+                    #             'css': [{'paddingLeft': '0.5rem'}]
+                    #         }
+                    #     ],
+                    #     filter_action='native',
+                    #     page_size=30,
+                    #     style_table={
+                    #         'height': '800px',
+                    #         'overflowY': 'auto',
+                    #     },
+                    #     fixed_rows={'headers': True},
+                    #     style_header={
+                    #         'backgroundColor': '#054b80',
+                    #         'fontWeight':'bold',
+                    #         'color': 'white',
+                    #     },
+                    #     style_data={
+                    #         'overflow': 'hidden',
+                    #         'textOverflow': 'ellipsis',
+                    #         'width':'50%'
+                    #     },
+                    # ),
+                    # className="oTable"
+                    # ),
+    
+
+    
+    
     # dcc.Dropdown(
     #     id="dropdown",
     #     options=[{"label": tag, "value": tag} for tag in AllQsQueries["Tag"].unique()],
     #     value=AllQsQueries["Tag"].unique()[0]
     # ),
     # dcc.Graph(id="pie-chart"),
-    html.H1(children='Graph showing the number of questions per day',
-            style={
-                'textAlign': 'center',
-                'font-family':'Arial'}),
-    dcc.Graph(
-        id='questions-graph',
-        figure=fig3
-    ),
-    html.H1(children='Table showing top ID for each tag',
-            style={
-                'textAlign': 'center',
-                'font-family' : 'Arial'
-            }),
-    html.Div(dash_table.DataTable(
-        sortedTopScoreOwners.to_dict('records'),
-        columns=[
-            {'name': 'Issue', 'id': 'Tag'},
-            {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
-            {'name': 'Score', 'id': 'Score'},
-        ],
-        filter_action='native',
-        page_size=20,
-        fixed_rows={'headers': True},
-        style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-            },
-        style_data={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-        },
-        ))
+
+    # html.H1(children='Table showing top ID for each tag',
+    #         style={
+    #             'textAlign': 'center',
+    #             'font-family' : 'Arial'
+    #         }),
+    # html.Div(dash_table.DataTable(
+    #     sortedTopScoreOwners.to_dict('records'),
+    #     columns=[
+    #         {'name': 'Issue', 'id': 'Tag'},
+    #         {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
+    #         {'name': 'Score', 'id': 'Score'},
+    #     ],
+    #     filter_action='native',
+    #     page_size=20,
+    #     fixed_rows={'headers': True},
+    #     style_header={
+    #             'backgroundColor': 'rgb(30, 30, 30)',
+    #             'color': 'white',
+    #         },
+    #     style_data={
+    #         'overflow': 'hidden',
+    #         'textOverflow': 'ellipsis',
+    #     },
+    #     ))
 ])
 
 # @app.callback(
