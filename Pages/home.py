@@ -5,7 +5,6 @@ from dash.dependencies import Input, Output, State
 from apps import navigation, dataManipulator
 from main import app
 import main
-import json
 
 home_layout = html.Div(children=
     [
@@ -170,6 +169,14 @@ def findTop5(uniqueE):
                 return topEngineers
     return topEngineers
 
+def checkStatus(engineers):
+    activeEngineers = []
+    for engineer in engineers:
+        userId = float(engineer['Ids'])
+        if userId not in main.busy_users:
+            activeEngineers.append(engineer)     
+    return activeEngineers
+
 #Callback for getting the engineers best suited to the question
 @app.callback(
     Output(component_id='engineers', component_property='children'),
@@ -183,7 +190,8 @@ def updateEngineers(n,input):
     engineer = main.index_search("index_dir", ["Body"], input)
     topEngineers = findTop25(engineer)
     uniqueEngineers = list({v['Ids']:v for v in topEngineers}.values())
-    topFive = findTop5(uniqueEngineers)
+    activeEngineers = checkStatus(uniqueEngineers)
+    topFive = findTop5(activeEngineers)
     engineersDivs = []
     for i in topFive:
         div = html.Div(

@@ -7,7 +7,7 @@ from lxml.html import fromstring
 from sklearn.feature_extraction.text import CountVectorizer
 
 #still contains: 'lemmatizer', 'tagger', 'attribute_ruler'
-nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec', 'ner']) 
+# nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec', 'ner']) 
 # print(nlp.pipe_names)
 
 #   remove html tags in the body of questions

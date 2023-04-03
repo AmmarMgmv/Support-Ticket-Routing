@@ -73,7 +73,7 @@ columns_to_read_answers = ['Body', 'ParentId', 'OwnerUserId']
 ansDataset = pd.read_csv("Dataset\Answers.csv",encoding = "ISO-8859-1",usecols=columns_to_read_answers)
 ansDataset = ansDataset.rename(columns={'Body': 'Answer_Body'})
 
-columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score', 'Email']
+columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score', 'Email', 'Status']
 engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859-1", usecols=columns_to_read_ids)
 
 merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
@@ -90,7 +90,8 @@ schema = Schema(
     FirstName=TEXT(stored=True, analyzer=my_analyzer),
     LastName=TEXT(stored=True, analyzer=my_analyzer), 
     Score=NUMERIC(stored=True), 
-    Email=TEXT(stored=True, analyzer=my_analyzer))
+    Email=TEXT(stored=True, analyzer=my_analyzer),
+    Status=TEXT(stored=True, analyzer=my_analyzer))
 
 # Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
@@ -108,7 +109,8 @@ for i, row in final_df.iterrows():
     LastName = row['LastName']
     Score = row['Score']
     Email = row['Email']
-    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score,Email=Email)
+    Status = row['Status']
+    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score,Email=Email,Status=Status)
     if i == 10000:
         break
 writer.commit()
@@ -138,6 +140,7 @@ def index_search(dirname, search_fields, search_query):
             result_dict["Score"] = hit.fields()["Score"]
             result_dict["Email"] = hit.fields()["Email"]
             # result_dict["score"] = hit.score
+            result_dict["Status"] = hit.fields()["Status"]
             results_list.append(result_dict)
         
         # Sort the search results by score
@@ -221,6 +224,7 @@ uniqueLN = dataReader.findUniqueLastNames(eDataset)
 #                            CREATE DASH APP WITH GRAPHS/TABLES                               
 # 
 # ------------------------------------------------------------------------------------------
+busy_users = [] # List to store user IDs with status 'Busy'
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR])
 server = app.server

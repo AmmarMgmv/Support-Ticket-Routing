@@ -4,8 +4,6 @@ from apps import navigation
 from main import app
 import main
 
-busy_users = [] # List to store user IDs with status 'Busy'
-
 # Get the dataset
 Ogdf = main.eDataset.copy()
 # print(df.head())
@@ -18,13 +16,13 @@ def updateUserStatus(inputUserID):
         rowIndex = rowIndexList[0]
 
         if Ogdf.at[rowIndex, 'Status'] == 'Active':
-            busy_users.append(inputUserID)
+            main.busy_users.append(inputUserID)
             Ogdf.at[rowIndex, 'Status'] = 'Busy'
         else:
-            busy_users.remove(inputUserID)
+            main.busy_users.remove(inputUserID)
             Ogdf.at[rowIndex, 'Status'] = 'Active'
         
-        print(busy_users)
+        print(main.busy_users)
     else:
         print(f"No row found with ID {inputUserID}")
 
