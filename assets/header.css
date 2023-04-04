@@ -16,8 +16,6 @@
     height: 100%;
     padding: 2rem;
     background-color: #ffffff;
-    /* background-image: url("../images/MLP.PNG");
-    background-size: cover; */
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -194,24 +192,37 @@ textarea.indexInput{
     justify-content: center;
 }
 
-.resultForm {
+.recommendUsers{
+    text-align: left;
+    background-color: white;
+    padding-top: 0.5rem;
     width: 100%;
-    max-width: 700px;
-    height: 350px;
-    background-color: transparent;
-    z-index: 1000;
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: 325px 325px;
-    grid-column-gap: 40px;
+    border-radius: 22px;
+    overflow: scroll;
+    height: 300px;
 }
 
-.recommendUsers, .detectedTags {
-    text-align: center;
+.engineerTitle{
+    margin-left: 1rem;
+}
+
+.detectedTags{
+    height: 3rem;
+    text-align: left;
+    display: flex;
+    margin-bottom: 1.5rem;
     padding-top: 0.5rem;
     background-color: #fff;
     border-radius: 22px;
     overflow: scroll;
+    font-weight: 500;
+    font-size: 1.25rem;
+    letter-spacing: 0.75px;
+}
+
+.printedTags, .detectedTitle{
+    margin-left: 1rem;
+    margin-top: 0.1rem;
 }
 
 .recommendUsers::-webkit-scrollbar {
@@ -284,16 +295,6 @@ textarea.indexInput{
     opacity: 0.3;
 }
 
-/* .dots{
-    position: fixed;
-    height: 500px;
-    width: 600px;
-    top: 13.5%;
-    left: -11.5%;
-    transform: translate(181%, 11%);
-    transform: rotate(90deg);
-    opacity: 0.3;
-} */
 .hexagon-container {
     position: absolute;
     margin: 0 auto;
@@ -396,16 +397,18 @@ textarea.indexInput{
     padding: 1rem;
 }
 
-.printedTags, .printedEngineers{
-    margin: 2rem;
-    font-size: 20px;
+.printedEngineers{
+    margin: 1rem;
+    font-size: 1.2rem;
     text-align: left;
 }
 
-.eachTag, .eachEngineer{
+.eachTag {
     padding-top: .4rem;
     padding-bottom: .4rem;
 }
+
+
 /* ------------------------------------------------------------------------------ */
 
 .adminRow{
@@ -468,7 +471,6 @@ textarea.indexInput{
     margin: 2rem;
     min-height: 41rem;
     text-align: center;
-    /* min-width: 85%; */
     width: 23rem;
     border-radius: 35px;
 }
@@ -506,10 +508,6 @@ textarea.indexInput{
     width: 220px;
     padding-bottom: 1rem;
 }
-
-/* .testCard{
-    overflow: scroll;
-} */
 
 /* ---------------------------------------------------------------------------- */
 
@@ -551,6 +549,24 @@ textarea.indexInput{
     color: white;
 }
 
+.bigTable, .smallTableCol{
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 10px 1px rgba(0,0,0,0.5);
+}
+
+.bigTableTitle, .smallTableTitle{
+    color: white;
+    margin-top: 2rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    background-color: #1f659b;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 0 10px 1px rgba(0,0,0,0.5);
+}
+
 .infoRow{
     display: flex;
     justify-content: center;
@@ -560,6 +576,9 @@ textarea.indexInput{
 }
 
 .infoTab{
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     background-color: #1f659b;
     color: white;
@@ -569,4 +588,6 @@ textarea.indexInput{
     margin-left: 1rem;
     margin-right: 1rem;
     width: 25%;
+    font-size: 25px;
+    font-weight: bold;
 }

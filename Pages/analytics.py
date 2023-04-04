@@ -26,25 +26,25 @@ analytics_layout = html.Div(children=[
             html.Div(
                 className="infoTab",
                 children=[
-                    '1 million Questions'
+                    '1,048,576 Questions'
                 ]
             ),
             html.Div(
                 className="infoTab",
                 children=[
-                    '2 million Answers'
+                    '1,048,576 Answers'
                 ]
             ),
             html.Div(
                 className="infoTab",
                 children=[
-                    '400k Tags'
+                    '3,750,995 Different Tags'
                 ]
             ),
             html.Div(
                 className="infoTab",
                 children=[
-                    '100k Unique Users'
+                    '467,798 Unique Users'
                 ]
             ),
         ]
@@ -103,77 +103,98 @@ analytics_layout = html.Div(children=[
             ), 
         ]
     ),
-    
-                    # html.H1(
-                    #     children='Table showing tags and frequency'
-                    # ),
-                    # html.Div(dash_table.DataTable(
-                    #     tagsDF.to_dict('records'),
-                    #     columns=[
-                    #         {'name': 'Tag', 'id': 'Tag'},
-                    #         {'name': 'Frequency', 'id': 'Occurrences'},
-                    #     ],
-                    #     style_cell_conditional=[
-                    #         {
-                    #             'textAlign': 'left',
-                    #             'css': [{'paddingLeft': '0.5rem'}]
-                    #         }
-                    #     ],
-                    #     filter_action='native',
-                    #     page_size=30,
-                    #     style_table={
-                    #         'height': '800px',
-                    #         'overflowY': 'auto',
-                    #     },
-                    #     fixed_rows={'headers': True},
-                    #     style_header={
-                    #         'backgroundColor': '#054b80',
-                    #         'fontWeight':'bold',
-                    #         'color': 'white',
-                    #     },
-                    #     style_data={
-                    #         'overflow': 'hidden',
-                    #         'textOverflow': 'ellipsis',
-                    #         'width':'50%'
-                    #     },
-                    # ),
-                    # className="oTable"
-                    # ),
-    
-
-    
-    
-    # dcc.Dropdown(
-    #     id="dropdown",
-    #     options=[{"label": tag, "value": tag} for tag in AllQsQueries["Tag"].unique()],
-    #     value=AllQsQueries["Tag"].unique()[0]
-    # ),
-    # dcc.Graph(id="pie-chart"),
-
-    # html.H1(children='Table showing top ID for each tag',
-    #         style={
-    #             'textAlign': 'center',
-    #             'font-family' : 'Arial'
-    #         }),
-    # html.Div(dash_table.DataTable(
-    #     sortedTopScoreOwners.to_dict('records'),
-    #     columns=[
-    #         {'name': 'Issue', 'id': 'Tag'},
-    #         {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
-    #         {'name': 'Score', 'id': 'Score'},
-    #     ],
-    #     filter_action='native',
-    #     page_size=20,
-    #     fixed_rows={'headers': True},
-    #     style_header={
-    #             'backgroundColor': 'rgb(30, 30, 30)',
-    #             'color': 'white',
-    #         },
-    #     style_data={
-    #         'overflow': 'hidden',
-    #         'textOverflow': 'ellipsis',
-    #     },
-    #     ))
+    html.Div(
+        className="tableRow",
+        children=[
+            html.H1(
+                className="smallTableTitle",
+                children=['Tags and Their Frequency']
+            ),
+            html.Div(
+                className="smallTableCol",
+                children=[
+                    html.Div(
+                        dash_table.DataTable(
+                            tagsDF.to_dict('records'),
+                            columns=[
+                                {'name': 'Tag', 'id': 'Tag'},
+                                {'name': 'Frequency', 'id': 'Occurrences'},
+                            ],
+                            style_cell_conditional=[
+                                {
+                                    'textAlign': 'left',
+                                }
+                            ],
+                            filter_action='native',
+                            page_size=14,
+                            style_table={
+                                'height': '800px',
+                                'overflowY': 'auto',
+                            },
+                            fixed_rows={'headers': True},
+                            style_header={
+                                'backgroundColor': '#054b80',
+                                'fontWeight':'bold',
+                                'color': 'white',
+                            },
+                            style_data={
+                                'overflow': 'hidden',
+                                'textOverflow': 'ellipsis',
+                                'width':'50%'
+                            },
+                        ),
+                    ),
+                ]
+            ),
+            # html.Div(
+            #     className="pieChart",
+            #     children=[
+            #         # dcc.Dropdown(
+            #         #     id="dropdown",
+            #         #     options=[{"label": tag, "value": tag} for tag in AllQsQueries["Tag"].unique()],
+            #         #     value=AllQsQueries["Tag"].unique()[0]
+            #         # ),
+            #         # dcc.Graph(id="pie-chart"),
+            #     ]
+            # )    
+        ]
+    ),
+    html.H1(
+        className="bigTableTitle",
+        children=['Top Scoring ID for Each Tag']
+    ),
+    html.Div(
+        className="bigTable",
+        children=[
+            html.Div(
+                dash_table.DataTable(
+                    sortedTopScoreOwners.to_dict('records'),
+                    columns=[
+                        {'name': 'Issue', 'id': 'Tag'},
+                        {'name': 'ID no. of staff member', 'id': 'OwnerUserId'},
+                        {'name': 'Score', 'id': 'Score'},
+                    ],
+                    style_cell_conditional=[
+                        {
+                            'textAlign': 'left',
+                        }
+                    ],
+                    filter_action='native',
+                    page_size=14,
+                    fixed_rows={'headers': True},
+                    style_header={
+                        'backgroundColor': '#054b80',
+                        'color': 'white',
+                    },
+                    style_data={
+                        'overflow': 'hidden',
+                        'textOverflow': 'ellipsis',
+                        'width':'33.3%'
+                    },
+                )
+            )
+        ]
+     ), 
 ])
 
 # @app.callback(

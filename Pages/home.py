@@ -72,6 +72,19 @@ home_layout = html.Div(children=
                                                 ),
                                             ]
                                         ),
+                                        html.Div(
+                                            className="detectedTags",
+                                            children=[
+                                                html.H4(
+                                                    className="detectedTitle", 
+                                                    children=['Detected Tags: ']
+                                                ),
+                                                html.Div(
+                                                    id="dTags",
+                                                    className="printedTags"
+                                                )
+                                            ]
+                                        ),
                                         html.Button(
                                             'Search',
                                             className="formBtn",
@@ -83,28 +96,16 @@ home_layout = html.Div(children=
                                             className="resultContainer",
                                             children=[
                                                 html.Div(
-                                                    className="resultForm",
+                                                    className="recommendUsers",
                                                     children=[
-                                                        html.Div(
-                                                            className="detectedTags",
-                                                            children=[
-                                                                html.H4('Detected Tags'),
-                                                                html.Div(
-                                                                    id="dTags",
-                                                                    className="printedTags"
-                                                                )
-                                                            ]
+                                                        html.H4(
+                                                            className="engineerTitle",
+                                                            children=['Recommended Engineers']
                                                         ),
                                                         html.Div(
-                                                            className="recommendUsers",
-                                                            children=[
-                                                                html.H4('Recommended Engineers'),
-                                                                html.Div(
-                                                                    id="engineers",
-                                                                    className="printedEngineers"
-                                                                )
-                                                            ]
-                                                        ),
+                                                            id="engineers",
+                                                            className="printedEngineers"
+                                                        )
                                                     ]
                                                 ),
                                             ]
@@ -125,22 +126,15 @@ def findTop25(engineers):
     lastQuestion = ""
     top25 = []
     for engineer in engineers:
-        # printable_userID = engineer['Ids']
-        # printable_Fn = engineer['FirstName']
-        # printable_Ln = engineer['LastName']
-        # fullID = printable_Fn + " " + printable_Ln + " (" + printable_userID + ")"
-        # print(engineer)
         if(lastQuestion != engineer['QuestionBody']):
             aCounter = 0
             qCounter += 1
             if aCounter < 5:
                 top25.append(engineer)
-                # print(fullID)
                 aCounter += 1
         else:
             if aCounter < 5:
                 top25.append(engineer)
-                # print(fullID)
                 aCounter += 1
         lastQuestion = engineer['QuestionBody']
         if qCounter == 5:
@@ -152,7 +146,6 @@ def findTop5(uniqueE):
     allScores = []
     for engineer in uniqueE:
         allScores.append(engineer['Score'])
-    # scores = list(map(int, allScores))
     scores = sorted(allScores, reverse=True)
     top5 = scores[:5]
 
@@ -197,7 +190,12 @@ def updateEngineers(n,input):
         div = html.Div(
             className="testCard",
             children=[
-                html.Div(className="eachEngineer", children=[f"{i['FirstName']} {i['LastName']} (ID: {i['Ids']})"]),
+                html.Div(
+                    className="eachEngineer", 
+                    children=[
+                        html.P(f"{i['FirstName']} {i['LastName']} (ID: {i['Ids']}) | {i['Email']} | {i['Status']}"),
+                    ]
+                ),
             ])
         engineersDivs.append(div)
 
@@ -214,8 +212,7 @@ def updateTags(input):
     input = input.lower()
     input = input.replace('?', '')
     tag = dataManipulator.detectTagsFromInput(main.overlap_words, input)
-    # Create a div for tags
-    tag_div = html.Div([
-        *[html.Div(t, className="eachTag") for t in tag]
-    ])
+
+    tag_string = ', '.join(tag)
+    tag_div = html.P(className="tagResults", children=[f"{tag_string}"])
     return tag_div
