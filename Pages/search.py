@@ -21,10 +21,6 @@ search_layout = html.Div(children=
                     className="hexagon1",
                     src="assets\hexagons.png"
                 ),
-                # html.Img(
-                #     className="dots",
-                #     src="assets\dots.png"
-                # ),
                 html.Div(
                     className="hexagonContainer",
                     children=[

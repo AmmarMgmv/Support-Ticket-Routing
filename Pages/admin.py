@@ -30,47 +30,51 @@ def updateUserStatus(inputUserID):
 admin_layout=html.Div(
     children=[
         navigation.navbar,
-        html.Div([
-            html.Div([
-                dcc.Dropdown(
-                    id='first-name-filter', 
-                    options=[
-                        {'label':str(i), 'value':str(i)}
-                        for i in main.uniqueFN],
-                    value='',
-                    placeholder="Search for first name..."
-                )
-            ], style={'flex': '1', 'margin':'0.4rem'}),
-            html.Div([
-                dcc.Dropdown(
-                    id='last-name-filter', 
-                    options=[
-                        {'label':str(i), 'value':str(i)}
-                        for i in main.uniqueLN],
-                    value='', 
-                    placeholder="Search for surname..."
-                )
-            ], style={'flex': '1', 'margin':'0.4rem'}),
-            html.Div([
-                dcc.Dropdown(
-                    id='status-filter', 
-                    options=[
-                        {'label': 'All', 'value': 'all'},
-                        {'label': 'Active', 'value': 'Active'},
-                        {'label': 'Busy', 'value': 'Busy'}
-                    ], 
-                    value='all',
-                )
-            ], style={'flex': '1', 'margin':'0.4rem'}),
-            html.Button(
-                'Search',
-                className="userBtn",
-                type="submit",
-                id="searchButton",
-                n_clicks=0,
-                style={'flex': '1', 'margin':'0.4rem'}),
-        ], 
-        style={'display': 'flex', 'margin':'2rem'}),
+        html.Div(
+            className="dropdownDiv",
+            children=[
+                html.Div([
+                    dcc.Dropdown(
+                        id='first-name-filter', 
+                        options=[
+                            {'label':str(i), 'value':str(i)}
+                            for i in main.uniqueFN],
+                        value='Michael',
+                        placeholder="Search for first name..."
+                    )
+                ], style={'flex': '1', 'margin':'0.5rem'}),
+                html.Div([
+                    dcc.Dropdown(
+                        id='last-name-filter', 
+                        options=[
+                            {'label':str(i), 'value':str(i)}
+                            for i in main.uniqueLN],
+                        value='Villa', 
+                        placeholder="Search for surname..."
+                    )
+                ], style={'flex': '1', 'margin':'0.5rem'}),
+                html.Div([
+                    dcc.Dropdown(
+                        id='status-filter', 
+                        options=[
+                            {'label': 'All', 'value': 'all'},
+                            {'label': 'Active', 'value': 'Active'},
+                            {'label': 'Busy', 'value': 'Busy'}
+                        ], 
+                        value='all',
+                    )
+                ], style={'flex': '1', 'margin':'0.5rem'}),
+                html.Button(
+                    'Search',
+                    className="adminSearchBtn",
+                    type="submit",
+                    id="searchButton",
+                    n_clicks=0,
+                    style={'flex': '1', 'margin':'0.5rem'}
+                ),
+            ], 
+            style={'display': 'flex', 'margin':'2rem'}
+        ),
 
         html.Div(
             className="adminRow",
@@ -105,12 +109,22 @@ admin_layout=html.Div(
                                         html.Div(
                                             className="id-search-bar",
                                             children=[
-                                                dcc.Input(
-                                                    placeholder="Search by ID...",
-                                                    type="text",
-                                                    value="",
-                                                    id="userInput",
-                                                    className="idInput"
+                                                html.Div(
+                                                    children=[
+                                                        html.P(
+                                                            className="statusChanger",
+                                                            children=[
+                                                                'Input a users ID to change their status'
+                                                            ]
+                                                        ),
+                                                        dcc.Input(
+                                                            placeholder="Search by ID...",
+                                                            type="text",
+                                                            value="",
+                                                            id="userInput",
+                                                            className="idInput"
+                                                        )
+                                                    ]
                                                 ),
                                                 html.Button(
                                                     'Update',
@@ -139,7 +153,7 @@ admin_layout=html.Div(
     State('first-name-filter', 'value'),
     State('last-name-filter', 'value'),
     State('status-filter', 'value'),
-    prevent_initial_call=True
+    prevent_initial_call=False
 )
 def filter_data(n_clicks, first_name, last_name, status):
     df = Ogdf.copy()
@@ -160,7 +174,7 @@ def filter_data(n_clicks, first_name, last_name, status):
             html.P(f"ID: {row['Ids']}"),
             html.P(f"Name: {row['FirstName']} {row['LastName']}"),
             html.P(f"Email: {row['Email']}"),
-            html.P(f"Job Title: {row['JobTitle']}"),
+            # html.P(f"Job Title: {row['JobTitle']}"),
             html.P(f"Address: {row['Address']}"),
             html.P(f"Status: {row['Status']}"),
         ])
