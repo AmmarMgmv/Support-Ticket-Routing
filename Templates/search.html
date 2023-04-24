@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="HTML, CSS, JavaScript">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+  
+  <title>Search</title>
+
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-sm justify-content-center gradient-bg" style="background-color: #054b80;">
+    <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/">Home</a>
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/search">Search</a>
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/admin">Admin</a>
+    </ul>
+    <span class="ml-auto text-light">Millennium Management</span>
+  </nav>
+  
+  <div class="searchContainer">
+    <form action="{{ url_for('search') }}" method="POST" class="search-bar">
+      <input type="text" placeholder="Search through previously asked questions..." name="search-input">
+      <button type="submit">
+        <img src="https://img.icons8.com/ios/256/search.png">
+      </button>
+    </form>
+    {% if results %}
+      <div class="searchForm">
+        {% for result in results %}
+          <!-- <h3>{{ result.title }}</h3> -->
+          <p>{{ result }}</p>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="searchForm">
+        <p>No results found for "{{ query }}"</p>
+      </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

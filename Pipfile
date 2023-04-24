@@ -8,7 +8,11 @@ dash = "*"
 spacy = "*"
 whoosh = "*"
 pandas = "*"
-beautifulsoup4 = "*"
+lxml = "*"
+scikit-learn = "*"
+counter = "*"
+pathlib = "*"
+faker = "*"
 
 [dev-packages]
 

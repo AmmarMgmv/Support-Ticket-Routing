@@ -1,192 +1,230 @@
-# import the package to work on the datasets
+import dash
 import pandas as pd
-import spacy
-from lxml.html import fromstring
+import re
+import os
+import dash_bootstrap_components as dbc
+from whoosh import index, qparser
+from whoosh.fields import Schema, TEXT, NUMERIC
+from whoosh.qparser import FuzzyTermPlugin
+from whoosh.analysis import RegexTokenizer, LowercaseFilter
+from apps import dataManipulator, dataReader
 
-#still contains: 'lemmatizer', 'tagger
-nlp = spacy.load("en_core_web_sm", exclude=['parser','tok2vec','attribute_ruler', 'ner']) 
-print(nlp.pipe_names)
+# ------------------------------------------------------------------------------------------
+# 
+#                               LOAD IN THE DATASETS                               
+# 
+# ------------------------------------------------------------------------------------------
 
-# import the datasets to be worked with (changed encoding as default is utf-8, which
+# Import the datasets (changed encoding as default is utf-8, which
 # does not support some characters in the datasets
+# tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
+# qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
+# aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+
+# ## FOR DEBUG: temporarily reads the first 200 rows of csv files
 tagDataset = pd.read_csv("Dataset\Tags.csv", encoding = "ISO-8859-1")
-qDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1")
-aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+qDataset = pd.read_csv("Dataset\Questions.csv", nrows = 10000, encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", nrows = 10000, encoding = "ISO-8859-1")
+eDataset = pd.read_csv("Dataset\EngineersDataset.csv", encoding = "ISO-8859-1")
 
-#1.       get the list of Unique tags. (+count the unique tags)
-tags = tagDataset.loc[:,"Tag"] #loc: choose column by name
+# ------------------------------------------------------------------------------------------
+# 
+#                               CLEAN OR LOAD CLEANED DATASET                               
+# 
+# ------------------------------------------------------------------------------------------
 
-uniqueTags = pd.unique(tags) #get unique tags
-print("Question 1: Get the list of Unique tags. (+count the unique tags)")
-print(uniqueTags, "\nNumber of tags: ", len(uniqueTags), "\n")
+# Load the cleaned CSV file (if it exists)
+try:
+    cleanedDataset = pd.read_csv("Dataset/Questions_cleaned.csv")
+    print("Cleaned dataset loaded from file")
+except FileNotFoundError:
+# If the cleaned CSV file does not exist, then clean the dataset and save it to file
+    cleanedDataset = qDataset.copy()
+    print("Cleaning dataset...")
+    cleanedDataset['Cleaned Body'] = cleanedDataset['Body'].apply(dataManipulator.remove_tags)
+    cleanedDataset['Cleaned Title'] = dataManipulator.remove_stopwords(cleanedDataset, 'Title')
+    cleanedDataset['Cleaned Body'] = dataManipulator.remove_stopwords(cleanedDataset, 'Cleaned Body')
+    cleanedDataset['Title'] = cleanedDataset['Cleaned Title']
+    cleanedDataset['Body'] = cleanedDataset['Cleaned Body']
+    cleanedDataset.drop('Cleaned Title', axis=1, inplace=True)
+    cleanedDataset.drop('Cleaned Body', axis=1, inplace=True)
+    cleanedDataset.to_csv("Dataset/Questions_cleaned.csv", index=False)
+    print("Cleaned dataset saved to file")
 
-# 2.       get the list and count of unique ownerIds
-qOwner = qDataset.loc[:, "OwnerUserId"]
-aOwner = aDataset.loc[:, "OwnerUserId"]
+TagsQs = pd.merge(tagDataset, cleanedDataset[["Id", "Title", "Body"]], on="Id")
+groups = TagsQs.groupby('Tag')
 
-owners = pd.concat([qOwner, aOwner]) #combine the 2 above lists
-uniqueOwners = pd.unique(owners)
-filteredUniqueOwners = pd.Series(uniqueOwners).dropna().astype('int').values #gets rid of invalid values and converts ID to int type
-# print("Question 2: Get the list and count of unique ownerIds")
-# print("Unique ID's in floating point representation: ", uniqueOwners, "\nNumber of owner id's: ", len(uniqueOwners))
-# print("Unique ID's in integer representation: ", filteredUniqueOwners, "\nNumber of owner id's: ", len(filteredUniqueOwners), "\n")
+# ------------------------------------------------------------------------------------------
+# 
+#                                  FUZZY SEARCH ALGORITHM                               
+# 
+# ------------------------------------------------------------------------------------------
 
-# 3.       Count number of question per tag ( + get top category )
-sortedTags = tagDataset.groupby(["Tag"]).size() #count how many in each "group: "Tag" "
-sortByTop = sortedTags.sort_values(ascending=False) #sort to show top categories
-# print("Question 3: Count number of question per tag ( + get top category )")
-# print("Tags sorted from most used to least used: \n", sortByTop, "\n")
+def remove_html_tags(text):
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
 
-# 4.       get number of question asked by each owner / and in each category (same for answers dataset)
-sortedQs = qDataset.groupby(["OwnerUserId"]).size()
-# print("Question 4: Get number of question asked by each owner / and in each category\n")
-# print(sortedQs, "\n")
-#  answers datasheet
-sortedAns = aDataset.groupby(["ParentId"]).size()
-# print("Question 4: Get number of questions answered by each owner / and in each category\n")
-# print(sortedAns, "\n")
+#load the datasets 
+# specify the columns you want to read
+columns_to_read = ['Body', 'Id']
+quesDataset = pd.read_csv("Dataset\Questions.csv", encoding = "ISO-8859-1",usecols=columns_to_read)
 
-# 5.       count Number of questions per day
-format = "%Y-%m-%d"
-dates = pd.DataFrame(pd.to_datetime(qDataset["CreationDate"]).dt.strftime(format))
-sortedDates = dates.groupby(["CreationDate"]).size()
-# print("Question 5: Count Number of questions per day\n")
-# print(sortedDates, "\n")
+columns_to_read_answers = ['Body', 'ParentId', 'OwnerUserId']
+ansDataset = pd.read_csv("Dataset\Answers.csv",encoding = "ISO-8859-1",usecols=columns_to_read_answers)
+ansDataset = ansDataset.rename(columns={'Body': 'Answer_Body'})
 
-# 6.       Count number of questions in each tags per day
-# Merge the "Tags" and "Questions" datasets on the "Id" column
-TagsQuestions = pd.merge(tagDataset, qDataset, on="Id", how="inner")
-# Convert the "CreationDate" column to a datetime type and make it a new column
-TagsQuestions['CreationDate'] = pd.to_datetime(TagsQuestions['CreationDate'])
-TagsQuestions['Day'] = TagsQuestions['CreationDate'].dt.date
-# Group by "Day" and "Tag" columns, then count number of occurrences for each group
-grouped = TagsQuestions.groupby(["Day", "Tag"]).size().reset_index(name="Count")
-# Pivot the DataFrame so that the "Tag" column becomes a row index and the "Day" column becomes a column
-QsPerTagPerDay = grouped.pivot(index="Tag", columns="Day", values="Count")
-# Fill any missing values with 0
-QsPerTagPerDay = QsPerTagPerDay.fillna(0)
-# print("Question 6: Count number of questions in each tags per day\n")
-# print(QsPerTagPerDay, "\n")
+columns_to_read_ids = ['Ids', 'FirstName', 'LastName', 'Score', 'Email', 'Status']
+engineerDataset= pd.read_csv("Dataset\EngineersDataset.csv",encoding = "ISO-8859-1", usecols=columns_to_read_ids)
 
-
-# 7.       get the top ownerId answering in each tags
-# Merge "Tags" and "Answers" datasets on their respective corresponding "Id" column
-TagsAnswers = pd.merge(tagDataset, aDataset, left_on='Id', right_on='ParentId')
-# Group the merged DataFrame by Tag and OwnerUserId and calculate the sum of the Score for each group
-summedScore = TagsAnswers.groupby(['Tag', 'OwnerUserId'])['Score'].sum().reset_index()
-# Get the OwnerUserId with the highest Score for each Tag
-topScoreOwners = summedScore.groupby('Tag').agg({'Score': 'idxmax'}).reset_index()
-topScoreOwners = summedScore.iloc[topScoreOwners['Score']]
-#sort by score to view top
-sortedTopScoreOwners = topScoreOwners.sort_values('Score', ascending=False)
-# print("Question 7: get the top ownerId answering in each tags\n")
-# print(sortedTopScoreOwners, "\n")
-
-
-# 8.       number of answers per question
-NumOfAns = aDataset.groupby(['ParentId']).size() #count ParentID in aDataset to see how many answers for each question
-# print("Question 8: number of answers per question\n")
-# print(NumOfAns, "\n")
-
-
-#9.       Find the questions which are still not answered?
-unanswered = qDataset[~qDataset["Id"].isin(aDataset["ParentId"])]
-# print("Question 9: Find the questions which are still not answered\n")
-# print(unanswered)
-
-
-#   remove html tags in the body of questions
-def remove_tags(text):
-    toParse = fromstring(text)
-    return str(toParse.text_content())
-
-
-# remove stopwords from a column `column` in a DataFrame `dataframe`
-# returns a list to be used by replacing worked on column or adding as a new column
-def remove_stopwords(dataframe: pd.DataFrame , column: str) -> list:
-    cleanedColumn = []
-    for text in nlp.pipe(dataframe[column], disable=['lemmatizer', 'tagger']):
-        cleanedText = [token.text for token in text if not token.is_stop and not token.is_punct]
-        cleanedColumn.append(" ".join(cleanedText))
-    return cleanedColumn
-
-# lemmatize all words from a column `column` in a DataFrame `dataframe`
-# returns a list to be used by replacing worked on column or adding as a new column
-def lemmatize(dataframe: pd.DataFrame, column: str) -> list:
-    lematizedColumn = []
-    for text in nlp.pipe(dataframe[column], disable=['tagger']):
-        lemmatizedText = [token.lemma_ for token in text]
-        lematizedColumn.append(" ".join(lemmatizedText))
-    return lematizedColumn
-
-
-# remove all stop words and lemmatize all words from a column `column` in a DataFrame `dataframe`
-# returns a list to be used by replacing worked on column or adding as a new column
-def cleanAndLemmatize(dataframe: pd.DataFrame, column: str) -> list:
-    lematizedColumn = []
-    for text in nlp.pipe(dataframe[column], disable=['tagger']):
-        lemmatizedText = [token.lemma_ for token in text if not token.is_stop and not token.is_punct]
-        lematizedColumn.append(" ".join(lemmatizedText))
-    return lematizedColumn
-
-
-#   remove stop words and html tags for both title and body parts of each tag
-qDataset['Cleaned Body'] = qDataset['Body'].apply(remove_tags)
-qDataset['Cleaned Title'] = remove_stopwords(qDataset, 'Title')
-qDataset['Cleaned Body'] = remove_stopwords(qDataset, 'Cleaned Body')
-
-# print(qDataset[["Title", "Cleaned Title"]].head(3))
-# print(qDataset[["Body", "Cleaned Body"]].head(3))
-
-qDataset['Title'] = qDataset['Cleaned Title']
-qDataset['Body'] = qDataset['Cleaned Body']
-qDataset.drop('Cleaned Title', axis=1, inplace=True) #replace and remove 'Cleaned Title' column    # axis=1 means delete a column
-qDataset.drop('Cleaned Body', axis=1, inplace=True) #replace and remove 'Cleaned Body' column      # axis=0 would mean delete a row
-TagsQs = pd.merge(tagDataset, qDataset[["Id", "Title", "Body"]], on="Id")
-
+merged_df = pd.merge(quesDataset, ansDataset, left_on='Id', right_on='ParentId')
+final_df = pd.merge(merged_df, engineerDataset, left_on='OwnerUserId', right_on='Ids')
 
 # fuzzy search on question data set
+my_analyzer = RegexTokenizer() | LowercaseFilter()
 
-from whoosh.fields import Schema, TEXT, ID
-from whoosh import index
-import os, os.path
-from whoosh import index
-from whoosh import qparser
-from whoosh.qparser import QueryParser
+# Define the schema for the index
+schema = Schema(
+    Body=TEXT(stored=True, analyzer=my_analyzer),
+    Answer_Body=TEXT(stored=True, analyzer=my_analyzer),
+    Ids=TEXT(stored=True, analyzer=my_analyzer),
+    FirstName=TEXT(stored=True, analyzer=my_analyzer),
+    LastName=TEXT(stored=True, analyzer=my_analyzer), 
+    Score=NUMERIC(stored=True), 
+    Email=TEXT(stored=True, analyzer=my_analyzer),
+    Status=TEXT(stored=True, analyzer=my_analyzer))
 
-schema = Schema(Title=TEXT(stored=True))
-
-# create empty index directory
-
+# Create the index directory if it doesn't exist
 if not os.path.exists("index_dir"):
     os.mkdir("index_dir")
 
-# using schema to initialize a Whoosh index in the directory 
+# Create the index and add documents to it
 ix = index.create_in("index_dir", schema)
-writer = ix.writer()
+writer= ix.writer()
 
-for i in range(qDataset):
-    writer.add_document(Title=str(qDataset.Title.iloc[i]))
+for i, row in final_df.iterrows():
+    Body = remove_html_tags (row ["Body"])
+    Answer_Body = remove_html_tags(row["Answer_Body"])
+    Ids = str(row['Ids'])
+    FirstName = row['FirstName']
+    LastName = row['LastName']
+    Score = row['Score']
+    Email = row['Email']
+    Status = row['Status']
+    writer.add_document(Body=Body,Answer_Body=Answer_Body,Ids=Ids,FirstName=FirstName,LastName=LastName,Score=Score,Email=Email,Status=Status)
+    if i == 10000:
+        break
 writer.commit()
 
-#function to search the index 
-
+# Function to search the index
 def index_search(dirname, search_fields, search_query):
     ix = index.open_dir(dirname)
     schema = ix.schema
     
-    og = qparser.OrGroup.factory(0.9)
-    mp = qparser.MultifieldParser(search_fields, schema, group = og)
+    og = qparser.OrGroup.factory(0.2)
+    mp = qparser.MultifieldParser(search_fields, schema, group=og)
+    mp.add_plugin(FuzzyTermPlugin())
+    q = mp.parse(search_query + "~")
+    
+    with ix.searcher() as searcher:
+        results = searcher.search(q, limit=None)
+        
+         # Build a list of search results
+        results_list = []
+        for hit in results:
+            result_dict = {}
+            result_dict["QuestionBody"] = hit.fields()["Body"]
+            result_dict["AnswerBody"] = hit.fields()["Answer_Body"]
+            result_dict["Ids"] = hit.fields()["Ids"]
+            result_dict["FirstName"] = hit.fields()["FirstName"]
+            result_dict["LastName"] = hit.fields()["LastName"]
+            result_dict["Score"] = hit.fields()["Score"]
+            result_dict["Email"] = hit.fields()["Email"]
+            # result_dict["score"] = hit.score
+            result_dict["Status"] = hit.fields()["Status"]
+            results_list.append(result_dict)
+        
+        # Sort the search results by score
+        # results_list = sorted(results_list, key=lambda x: x["score"], reverse=True)
+            
+        return results_list
+    
+#Prompt the user for search queries
+# while True:
+#     query = input("Enter your query (or 0 to exit): ")
+#     if query == "0":
+#         break
+#     else:
+#         results = index_search("index_dir", ["Body"], query)
+#         print("Search results:")
+#         for i, result in enumerate(results, start=1):
+#             print(f"{i}. Question: {result['QuestionBody']}")
+#             print(f"     Answer: {result['AnswerBody']}")
+#             print(f"     Id: {result['Ids']}")
+#             print(f"     Name: {result['FirstName']} {result['LastName']}")
+#             print("")
 
-    
-    q = mp.parse(search_query)
-    
-    
-    with ix.searcher() as s:
-        results = s.search(q, terms=True, limit = 10)
-        print("Search Results: ")
-        
-        
-        print(results[0:10])
-    
-results_dict = index_search("index_dir", ['Title'], "SQL")
+# ------------------------------------------------------------------------------------------
+# 
+#                            FIND OVERLAPPING WORDS & DETECT TAGS                               
+# 
+# ------------------------------------------------------------------------------------------
+
+# returns a DataFrame with the N most common words per tag
+# def getNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+#     grouped = DataFrame.groupby('Tag')
+#     return grouped[Column].apply(lambda x: pd.Series(str(x).split()).value_counts().head(n))
+
+# returns a DataFrame with same data as getNCommonWords, but in a format easier to access
+# better to use for graphing / accessing
+# def betterGetNCommonWords(DataFrame:pd.DataFrame, Column:str, n:int):
+#     df = getNCommonWords(DataFrame, Column, n)
+#     print(df)
+#     indice = df.values
+#     list = df.index.tolist()
+#     indices = []
+#     for i in indice:
+#         indices.append(i)
+#     wordFreq = {}
+#     wordFreqList = []
+#     for i in range(len(indices)):
+#         if(i != 0 and i%n == 0):
+#             wordFreqList.append(wordFreq)
+#             wordFreq = {}
+#         wordFreq[list[i][1]] = indices[i]
+#     wordFreqList.append(wordFreq)
+#     words = []
+#     for i in range(0, len(list), n):
+#         words.append(list[i][0])
+#     dff = pd.DataFrame()
+#     dff['Tags'] = words
+#     dff["'Word : Occurrences' list"] = wordFreqList
+#     print(dff)
+#     return dff
+
+# def commonWordsPerTag():
+#     grouper = qDataset.merge(tagDataset, left_on="Id", right_on="Id", how="inner")
+#     return betterGetNCommonWords(grouper, 'Title', 10) #set to 10 by default, use function separately to change number of words
+
+
+tag_common, all_common_words = dataManipulator.commonWords(groups)
+overlap_words = dataManipulator.overlappedCommonWords(tag_common, all_common_words)
+# detectTags(qDataset, overlap_words)
+
+# ------------------------------------------------------------------------------------------
+# 
+#                               LOAD DATA FOR ADMIN PAGES                               
+# 
+# ------------------------------------------------------------------------------------------
+# eDataset['Ids'] = eDataset['Ids'].astype(int)
+uniqueFN = dataReader.findUniqueFirstNames(eDataset)
+uniqueLN = dataReader.findUniqueLastNames(eDataset)
+
+# ------------------------------------------------------------------------------------------
+# 
+#                            CREATE DASH APP WITH GRAPHS/TABLES                               
+# 
+# ------------------------------------------------------------------------------------------
+busy_users = [] # List to store user IDs with status 'Busy'
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR])
+server = app.server
