@@ -1,115 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>search</title>
-    <style>
-       nav{
-        background-color: rgb(51, 105, 192);
-        height: 50px;
-       }
-       nav li a {
-       display: block;
-       color: #fff;
-       text-decoration: none;
-       padding: 10px;
-       }
-       nav li {
-       float: left; 
-       margin-right: 10px;
-}
-        nav li.right {
-        float: right; 
-        
-}
-       blue-box {
-        display: flex;
-        background-color:rgb(143, 200, 236);
-        width: 1385px;
-        height: 270px;
-        padding: 20px;
-        margin: 00px;
-        color: white;  
-}
-      search-box{
-        display: flex;
-        background-color:lightblue;
-        width:1200px;
-        height:300px;
-        padding: 20px;
-        margin-top: 30px;
-        margin-left: 90px;
-        margin-right: 90px;
-      }
-      input{
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        padding: 10px;
-        background-color: #f2f2f2;
-        
-      }
-      table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10px 0;
-  }
-  th, td {
-    border: 1px solid black;
-    padding: 5px;
-    text-align: center;
-  }
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="HTML, CSS, JavaScript">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Search</title>
+  <script>
+    src="https://kit.fontawesome.com/64d58efce2.js"
+    crossorigin="anonymous"
+  </script>
 </head>
+
 <body>
-   <nav>
-    <ul>
-        <li style="font-size: 20px;"><a href="{% url 'index' %}">home</a></li>
-        <li style="font-size: 20px;margin-left: 30px;"><a href="">Admin</a></li>
-        <li style="font-size: 20px;margin-left: 30px;"><a href="{% url 'response' %}">search</a></li>
-        <li style="padding:10px;margin-left: 800px;font-size: 20px;">Millennium Management</li>
+  <nav class="navbar navbar-expand-sm justify-content-center gradient-bg" style="background-color: #054b80;">
+    <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/">Home</a>
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/search">Search</a> 
+      <a class="nav-link active text-light nav-item" aria-current="page" href="/admin">Admin</a>
     </ul>
-   </nav>
-   <blue-box>
-    <p style="font-size: 30px;margin-left: 450px;line-height: 2;white-space: pre-line">Welcome to Millennium Management<br>Have q question?<br>Ask down below</p>
-   </blue-box>
-   <search-box>
-       <form action ="{% url 'handle_search' %}" method="POST">
-        {% csrf_token %}
-        <div style="display: flex;margin-left: 500px;">
-            <input style="width: 500px;margin-left:-200px;"type="text" name="content">
-            <input style="margin-left: 20px;"type="submit" value="search">
-    
-        </div>
-       </form>
-    </form>
-
-   
-    <div>
-     <form>
- </form>
- <div style="overflow: auto; width: 1000px; height: 250px;margin-left: -800px;margin-top: 50px;">
-    <table style="background-color:white;margin-left: 50px;width: 800px;">
-        <thead >
-            <tr>
-              <th style="font-size: 20px;">Previous similar questions</th>
-              <th style="font-size: 20px;">Users who can answer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {%for i in resp %}
-            <tr>
-                <td>{{i}}</td>
-            </tr>
-            {%endfor%}
-        </tbody>
-  </div>
+    <span class="ml-auto text-light">Millennium Management</span>
+  </nav>
   
+  <div class="indexContainer">
+    <span class="big-circle"></span>
+    <span class="big-circle-left"></span>
+    <div class="indexForm">
+      <div class="contact-info">
+        <h2 class="indexTitle">Welcome to Millennium Management</h2>
+        <p class="infoText">
+          Millennium is a global investment management firm, built on a sophisticated operating system at scale. 
+          We seek to pursue a diverse array of investment strategies, and we empower our employees to deliver exceptional 
+          outcomes and enable our portfolio managers to do what they do best, navigate the markets.
+        </p>
+        <div class="logo">
+          <img src="https://largest.org/wp-content/uploads/2019/01/Millennium-Management.png" alt="Millenium Management">
+        </div>
+        <h2 class="indexTitle">Have a question you need help with?</h2>
+        <p class="infoText">
+          Input your question into the form on the right and our program will detect what tags it belongs to and suggest
+          support engineers that may be able to answer your question based on these tags as well as the engineer's expertise and past experience.
+        </p>
+        <!-- <div class="logo">
+          <img src="https://media.cdn.gradconnection.com/uploads/3c8e0939-22f3-4f8d-8d24-bf512f4b3f7c-MILLENIUM_LOGO.png" alt="Millenium Management">
+        </div> -->
+      </div>
+      <div class="contact-form">
+        <span class="circle one"></span>
+        <span class="circle two"></span>
 
-
-   </search-box>
-
+        <form action="index.html">
+          <h3 class="indexTitle">Need Help?</h3>
+          <div class="input-container textarea">
+            <textarea name="question" class="indexInput"></textarea>
+            <label for="">Type your question here</label>
+          </div>
+          <input type="submit" value="Send" class="formBtn">
+          <div class="resultContainer">
+            <div class="resultForm">
+              <div class="detectedTags">
+                <h6>Detected Tags</h6>
+              </div>
+              <div class="recommendUsers">
+                <h6>Recommended Engineers</h6>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

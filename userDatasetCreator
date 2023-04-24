@@ -1,0 +1,100 @@
+import random
+from faker import Faker
+from pathlib import Path
+import pandas as pd
+
+cleanQDataset = pd.read_csv("Dataset\Questions_cleaned.csv", encoding = "ISO-8859-1")
+aDataset = pd.read_csv("Dataset\Answers.csv", encoding = "ISO-8859-1")
+
+domains = ["gmail.com", "hotmail.com", "livemillennium.com", "millenium.com"]
+inBetween = ['_', '-', '.']
+validIds = {61.0}
+
+def generateEmail(firstName: str, lastName: str):
+    domainNum = random.randint(0, len(domains)-1)
+    breakNum = random.randint(0, len(inBetween)-1)
+    email = f'{firstName}{inBetween[breakNum]}{lastName}@{domains[domainNum]}'
+    return email
+
+def createUserDataset():
+    df = pd.DataFrame()
+    df['Ids'] = list(validIds)
+    df['FirstName'] = firstNames
+    df['LastName'] = lastNames
+    df['Email'] = emails
+    df['JobTitle'] = jobTitles
+    df['Address'] = addresses
+    df['Status'] = activeStatus
+    return df
+
+
+def addIds(dataframe: pd.DataFrame, column: str):
+    newDataframe = dataframe.copy()
+    newDataframe = newDataframe.dropna(subset=[column])
+    newDataframe = newDataframe.astype({column: 'int'})
+    colList = newDataframe[column].values.tolist()
+    newSet = set(colList)
+    validIds.update(newSet)
+
+def addAnsIds():
+    addIds(aDataset, 'OwnerUserId')
+
+def addQuesIds():
+    addIds(cleanQDataset, 'OwnerUserId')
+
+
+
+newADataset = aDataset.copy()
+newADataset = newADataset.dropna(subset=['OwnerUserId'])
+newADataset = newADataset.astype({'OwnerUserId': 'int'})
+newADataset
+
+addAnsIds()
+#addQuesIds()
+size = len(validIds)
+#size
+
+fake = Faker()
+
+firstNames = []
+lastNames = []
+emails = []
+jobTitles = []
+addresses = []
+activeStatus = []
+for i in range(size):
+    first = fake.first_name()
+    last = fake.last_name()
+    job = fake.job()
+    address = f'{fake.city()}, {fake.country()}'
+    firstNames.append(first)
+    lastNames.append(last)
+    emails.append(generateEmail(first, last))
+    jobTitles.append(job)
+    addresses.append(address)
+    activeStatus.append("Active")
+
+dataset = createUserDataset()
+#print(dataset)
+
+datasetCount = dataset.copy()
+datasetCount['count'] = datasetCount.groupby('Ids')['Ids'].transform('count')
+datasetCount.sort_values('count', inplace=True, ascending=False)
+#print(datasetCount)
+
+ansScorer = aDataset.copy()
+
+# Group the merged DataFrame by Tag and OwnerUserId and calculate the sum of the Score for each group
+ansScored = ansScorer.groupby(['OwnerUserId'])['Score'].sum().reset_index()
+
+ansScored.sort_values('Score', ascending=False, inplace=True)
+ansScored.rename({'OwnerUserId': 'Ids'}, axis=1, inplace=True)
+
+#print(ansScored)
+
+fullDataset = pd.merge(dataset, ansScored, on='Ids', how='outer')
+#print(fullDataset)
+
+filepath = Path('Dataset/EngineersDataset.csv')  
+filepath.parent.mkdir(parents=True, exist_ok=True)  
+fullDataset.to_csv(filepath, index=False) 
